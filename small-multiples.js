@@ -61,7 +61,6 @@ viz.update = function (data, element, settings, resp) {
 
 	var x_key = resp.fields.dimensions[0].name
 	, y_key = resp.fields.measures[0].name
-	, margin = { top: 15, right: 10, bottom: 40, left: 35 }
 	, pivots = resp.pivots.map(prop('key'))
 	, num_charts = pivots.length
 	, cols = Math.ceil(num_charts/2)
@@ -69,6 +68,8 @@ viz.update = function (data, element, settings, resp) {
 	, fmt = d3.time.format('%Y-%m')
 	, d = transformData(data, pivots, x_key, y_key, fmt)
 	, $el = $(element)
+	/* TODO: This layout is painfully naive... */
+	, margin = { top: 15, right: 10, bottom: 40, left: 65 }
 	, w = Math.floor($el.width()/cols - (margin.right + margin.left)*cols)
 	, h = Math.floor($el.height()/rows - (margin.top + margin.bottom)*(rows - 1))
 	, plot
@@ -82,8 +83,9 @@ viz.update = function (data, element, settings, resp) {
 	plotData('#small-multiples-chart-box', d, plot);
 
 	function SmallMultiples(w, h, settings, resp) {
-		var data, x_scale, y_scale, x_val, y_val, pivot_vals,
-			x_trans, y_trans, y_axis, area, line;
+		var cur_x, caption, circle, data, x_scale, y_scale, x_val,
+			y_val, pivot_vals, x_trans, y_trans, y_axis, area,
+			line, bisect;
 
 		data = [];
 		
@@ -94,15 +96,17 @@ viz.update = function (data, element, settings, resp) {
 		y_val = prop('meas');
 		pivot_vals = prop('v');
 		pivot_key = prop('k');
+		
+		bisect = d3.bisector(x_val).left;
 
 		x_trans = compose(x_scale, x_val);
 		y_trans = compose(y_scale, y_val);
 
 		y_axis = d3.svg.axis()
-			.scale(y_scale)
-			.orient("left").ticks(4)
-			.outerTickSize(0)
-			.tickSubdivide(1);
+				.scale(y_scale)
+				.orient("left").ticks(4)
+				.outerTickSize(0)
+				.tickSubdivide(1);
 
 		area = d3.svg.area().x(x_trans).y0(h).y1(y_trans);
 		line = d3.svg.line().x(x_trans).y(y_trans);
@@ -141,9 +145,12 @@ viz.update = function (data, element, settings, resp) {
 				.style('pointer-events', 'all')
 				.style('fill', '#dddddd')
 				.attr('width', w + margin.right )
-				.attr('height', h);
+				.attr('height', h)
+				.on('mouseover', show_circle)
+				.on('mousemove', show_x_pos)
+				.on('mouseout', hide_circle);
 
-			var lines = g.append('g')
+			var lines = g.append('g');
 
 			lines.append('path')
 				.attr('class', 'area')
@@ -165,8 +172,12 @@ viz.update = function (data, element, settings, resp) {
 				.attr('y', h)
 				.attr('dy', margin.bottom/2 + 5)
 				.attr('x', w/2)
-				.text(pivot_key)
+				.text(pivot_key);
 			
+			/**
+			 * TODO: These static labels will be wrong if the data
+			 * are sorted descending.
+			 */
 			lines.append('text')
 				.attr('class', 'static-xlabel')
 				.attr('text-anchor', 'start')
@@ -184,6 +195,28 @@ viz.update = function (data, element, settings, resp) {
 				.attr("y", h)
 				.attr("x", w)
 				.text(reduce_x(d3.max));
+
+			circle = lines.append('circle')
+				.attr('r', 2.2)
+				.attr('opacity', 0)
+				.style('pointer-events', 'none')
+
+			caption = lines.append('text')
+				.attr('class', 'caption')
+				.attr('text-anchor', 'middle')
+				.style('pointer-events', 'none')
+				.attr('dy', -8)
+
+			cur_x = lines.append('text')
+				.attr('class', 'year')
+				.attr('text-anchor', 'middle')
+				.style('pointer-events', 'none')
+				.attr('dy', 13)
+				.attr('y', h)
+
+			return g.append('g')
+				.attr('class', 'y-axis')
+				.call(y_axis);
 		
 			/* TODO: Need to deal with non-date x values. */	
 			function reduce_x(f) {
@@ -196,6 +229,47 @@ viz.update = function (data, element, settings, resp) {
 
 		function chart(sel) {
 			sel.each(doit);
+		}
+
+		function show_circle() {
+			circle.attr('opacity', 1.0);
+			d3.selectAll('.static-xlabel').classed('hidden', true);
+			return show_x_pos.call(this);
+		}
+
+		function show_x_pos() {
+			var x = x_scale.invert(d3.mouse(this)[0]);
+			var year = x.getFullYear() + '-' + x.getMonth();
+			var date = fmt.parse(year);
+
+			var index = 0;
+			circle.attr("cx", x_scale(date))
+				.attr("cy", function (c) {
+					var xs = pivot_vals(c);
+					index = bisect(xs, date, 0, xs.length - 1);
+					return y_scale(y_val(xs[index]));
+				});
+
+			caption.attr("x", x_scale(date))
+				.attr("y", function (c) {
+					var xs = pivot_vals(c);
+					return y_scale(y_val(xs[index]));
+				})
+				.text(function (c) {
+					var xs = pivot_vals(c);
+					return y_val(xs[index]);
+				});
+
+			return cur_x.attr("x", x_scale(date))
+				.text(year);
+		}
+		
+		function hide_circle() {
+			d3.selectAll('.static-xlabel')
+				.classed('hidden', false);
+			circle.attr('opacity', 0);
+			caption.text('');
+			return cur_x.text('');
 		}
 
 		chart.x = function (f) {
@@ -252,6 +326,10 @@ function prop(k) {
 	return function (x) {
 		return x[k];
 	};
+}
+
+function identity(x) {
+	return x;
 }
 
 }());
