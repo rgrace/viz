@@ -144,6 +144,23 @@ viz.update = function (data, element, settings, resp) {
 				.style('fill', '#dddddd')
 				.attr('width', w + margin.right )
 				.attr('height', h);
+
+			var lines = g.append('g')
+
+			lines.append('path')
+				.attr('class', 'area')
+				.style('pointer-events', 'none')
+				.style('fill', '#eeeeee')
+				.attr('d', compose(area, pivot_vals));
+
+			lines.append('path')
+				.attr('class', 'line')
+				.style('pointer-events', 'none')
+				.style('fill', 'none')
+				.style('stroke', '#333333')
+				.style('stroke-width', '1px')
+				.attr('d', compose(line, pivot_vals));
+
 		}
 
 		function chart(sel) {
@@ -178,8 +195,8 @@ viz.update = function (data, element, settings, resp) {
 			d.forEach(function (y) {
 				var pivot = y.k;
 				y.v.push({
-					dt: fmt.parse(x[x_key].value)
-					, sale_price: x[y_key][pivot].value
+					dim: fmt.parse(x[x_key].value)
+					, meas: x[y_key][pivot].value
 				});
 			});
 		});
