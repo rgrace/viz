@@ -61,6 +61,7 @@ viz.update = function (data, element, settings, resp) {
 
 	var x_key = resp.fields.dimensions[0].name
 	, y_key = resp.fields.measures[0].name
+	, margin = { top: 15, right: 10, bottom: 40, left: 35 }
 	, pivots = resp.pivots.map(prop('key'))
 	, num_charts = pivots.length
 	, cols = Math.ceil(num_charts/2)
@@ -68,8 +69,8 @@ viz.update = function (data, element, settings, resp) {
 	, fmt = d3.time.format('%Y-%m')
 	, d = transformData(data, pivots, x_key, y_key, fmt)
 	, $el = $(element)
-	, w = Math.floor($el.width()/cols)/(0.9*cols)
-	, h = Math.floor($el.height()/rows)/(0.7*rows)
+	, w = Math.floor($el.width()/cols - (margin.right + margin.left)*cols)
+	, h = Math.floor($el.height()/rows - (margin.top + margin.bottom)*(rows - 1))
 	, plot
 	;
 
@@ -81,10 +82,9 @@ viz.update = function (data, element, settings, resp) {
 	plotData('#small-multiples-chart-box', d, plot);
 
 	function SmallMultiples(w, h, settings, resp) {
-		var margin, data, x_scale, y_scale, x_val, y_val, pivot_vals,
+		var data, x_scale, y_scale, x_val, y_val, pivot_vals,
 			x_trans, y_trans, y_axis, area, line;
 
-		margin = { top: 15, right: 10, bottom: 40, left: 35 }
 		data = [];
 		
 		x_scale = d3.time.scale().range([0, w]);
@@ -93,6 +93,7 @@ viz.update = function (data, element, settings, resp) {
 		x_val = prop('dim');
 		y_val = prop('meas');
 		pivot_vals = prop('v');
+		pivot_key = prop('k');
 
 		x_trans = compose(x_scale, x_val);
 		y_trans = compose(y_scale, y_val);
@@ -117,7 +118,7 @@ viz.update = function (data, element, settings, resp) {
 		}
 
 		function doit(xs) {
-			var data, div;
+			var data, div, min_x;
 			data = xs;
 			setup_scales(data);
 			div = d3.select(this).selectAll('.chart').data(data)
@@ -158,6 +159,39 @@ viz.update = function (data, element, settings, resp) {
 				.style('stroke-width', '1px')
 				.attr('d', compose(line, pivot_vals));
 
+			lines.append('text')
+				.attr('class', 'pivot-name')
+				.attr('text-anchor', 'middle')
+				.attr('y', h)
+				.attr('dy', margin.bottom/2 + 5)
+				.attr('x', w/2)
+				.text(pivot_key)
+			
+			lines.append('text')
+				.attr('class', 'static-xlabel')
+				.attr('text-anchor', 'start')
+				.style('pointer-events', 'none')
+				.attr('dy', 13)
+				.attr('y', h)
+				.attr('x', 0)
+				.text(reduce_x(d3.min));
+
+			lines.append("text")
+				.attr("class", "static-xlabel")
+				.attr("text-anchor", "end")
+				.style("pointer-events", "none")
+				.attr("dy", 13)
+				.attr("y", h)
+				.attr("x", w)
+				.text(reduce_x(d3.max));
+		
+			/* TODO: Need to deal with non-date x values. */	
+			function reduce_x(f) {
+				return function (x) {
+					return f(pivot_vals(x).map(x_val))
+						.getFullYear();
+				};
+			}
 		}
 
 		function chart(sel) {
