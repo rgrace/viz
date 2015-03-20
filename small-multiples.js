@@ -1,9 +1,6 @@
 /* Wrap everything in an immediately-invoked function expression. */
 (function () {
 
-/* Wrap the chart code in Looker's visualization framework.  */
-angular.module('Visualizations').run(function (VisualizationManager) {
-
 /* Make a hash to pass to the visualization framework. */
 var viz = {
 	/* Must be a unique identifier. */
@@ -209,7 +206,7 @@ viz.update = function (data, element, settings, resp) {
 
 };
 
-VisualizationManager.register(viz);
+looker.plugins.visualizations.add(viz);
 
 function compose(f, g) {
 	return function (x) {
@@ -222,7 +219,5 @@ function prop(k) {
 		return x[k];
 	};
 }
-
-});
 
 }());
