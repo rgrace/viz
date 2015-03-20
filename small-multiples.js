@@ -40,10 +40,12 @@ viz.handleErrors = function (data, resp) {
  */
 viz.create = function (element, settings) {
 	d3.select(element)
-		.append('svg')
-		.attr('width', '100%')
-		.attr('height', '100%')
-		.classed('small-multiples-chart', true);
+		.append('div')
+		.attr('id', 'small-multiples-chart-box')
+		.style({
+			'height': '100%'
+			, 'width': '100%'
+		});
 };
 
 /**
@@ -60,138 +62,133 @@ viz.update = function (data, element, settings, resp) {
 		return;
 	}
 
-	var $el = $(element)
-	, margins = 1
-	, padding = 60
+	var x_key = resp.fields.dimensions[0].name
+	, y_key = resp.fields.measures[0].name
 	, pivots = resp.pivots.map(prop('key'))
 	, num_charts = pivots.length
-	, w = Math.floor($el.width()/2 - margins*3)
-	, h = Math.floor(2*$el.height()/num_charts -
-			margins*(Math.ceil(num_charts/2) - 1))
-	, fmt = d3.time.format('%Y-%M')
-	, x_scale = d3.time.scale().range([0, w])
-	, y_scale = d3.scale.linear().range([h, 0])
-	, x_key = resp.fields.dimensions[0].name
-	, y_key = resp.fields.measures[0].name
-	, x_trans = compose(x_scale, x_val)
-	, sel = d3.select(element)
-		.select('.small-multiples-chart')
-	, y_vals = {}
-	, y_scales = {}
-	, areas = {}
-	, y_axes
-	, y_transformers
-	, lines
+	, cols = Math.ceil(num_charts/2)
+	, rows = Math.ceil(num_charts/cols)
+	, fmt = d3.time.format('%Y-%m')
+	, d = transformData(data, pivots, x_key, y_key, fmt)
+	, $el = $(element)
+	, w = Math.floor($el.width()/cols)/(0.9*cols)
+	, h = Math.floor($el.height()/rows)/(0.7*rows)
+	, plot
 	;
 
-	if (!h || h <= 0) {
+	if (!h || h <= 0 || !w || w <= 0) {
 		return;
 	}
+	
+	plot = SmallMultiples(w, h, settings, resp);
+	plotData('#small-multiples-chart-box', d, plot);
 
-	/**
-	 * ``y_vals'' will be a hash of accessor functions. The keys will be the
-	 * names of the pivoted dimension and the values will be functions that
-	 * know how to get the y-value for the key from a hash in the ``data''
-	 * hash passed as a formal parameter to ``update''.
-	 */
-	setup_y_vals(pivots);
+	function SmallMultiples(w, h, settings, resp) {
+		var margin, data, x_scale, y_scale, x_val, y_val, pivot_vals,
+			x_trans, y_trans, y_axis, area, line;
 
-	/**
-	 * We want ``y_scales'' to be a hash of D3 scales. Each key is the name
-	 * of the pivoted dimension and each scale knows how to compute the
-	 * physical point (in pixels) in the Cartesian y dimension of the chart
-	 * for the value passed to the scale. This is because each category in
-	 * the pivoted dimension will have a different range of values for its
-	 * Cartesian y dimension and we want all the small multiples to take up
-	 * the same physical space (in pixels) in our chart.
-	 */
-	setup_y_scales(data, pivots);
+		margin = { top: 15, right: 10, bottom: 40, left: 35 }
+		data = [];
+		
+		x_scale = d3.time.scale().range([0, w]);
+		y_scale = d3.scale.linear().range([h, 0]);
 
-	/**
-	 * Set up the x-scale so it has correct minimum and maximum values.
-	 */
-	x_scale.domain(d3.extent(data, x_val));
+		x_val = prop('dim');
+		y_val = prop('meas');
+		pivot_vals = prop('v');
 
-	setup_areas(data, pivots);
+		x_trans = compose(x_scale, x_val);
+		y_trans = compose(y_scale, y_val);
 
-	chart(sel);
+		y_axis = d3.svg.axis()
+			.scale(y_scale)
+			.orient("left").ticks(4)
+			.outerTickSize(0)
+			.tickSubdivide(1);
 
-	function setup_areas(xs, pivots) {
-		pivots.forEach(function (pivot) {
-			areas[pivot] = d3.svg.area()
-				.x(x_trans)
-				.y0(h)
-				.y1(compose(y_scales[pivot], y_vals[pivot]));
-		});
-	}
+		area = d3.svg.area().x(x_trans).y0(h).y1(y_trans);
+		line = d3.svg.line().x(x_trans).y(y_trans);
 
-	function setup_y_vals(pivots) {
-		pivots.forEach(function (pivot) {
-			y_vals[pivot] = y_val(pivot);
-		});
-	}
+		function setup_scales(xs) {
+			max_y = d3.max(xs, function (x) {
+				return d3.max(pivot_vals(x), y_val);
+			})*1.2;
+			y_scale.domain([0, max_y]);
 
-	function setup_y_scales(xs, pivots) {
-		pivots.forEach(function (pivot) {
-			var max_y = xs.reduce(function (x, x_hash) {
-				return Math.max(x, y_vals[pivot](x_hash));
-			}, 0)*1.25
-			;
-			y_scales[pivot] = y_scale.copy().domain([0, max_y]);
-		});
-	}
+			extent_x = d3.extent(xs[0].v, x_val);
+			x_scale.domain(extent_x);
+		}
 
-	function x_val(d) {
-		return d[x_key].value;
-	}
+		function doit(xs) {
+			var data, div;
+			data = xs;
+			setup_scales(data);
+			div = d3.select(this).selectAll('.chart').data(data)
+			div.enter().append('div')
+				.attr('class', 'chart')
+				.style('float', 'left')
+				.append('svg')
+				.append('g');
 
-	function y_val(pivot) {
-		return function (d) {
-			return d[y_key][pivot].value;
-		};
-	}
+			var svg = div.select('svg')
+				.attr('width', w + margin.left + margin.right)
+				.attr('height', h + margin.top + margin.bottom);
 
-	function prop(k) {
-		return function (x) {
-			return x[k];
-		};
-	}
-
-	function chart(sel) {
-		var g, lines, gs, lines;
-
-		pivots.forEach(function (pivot) {
-			g = sel.append('g')
-				.classed('small-multiple-panels', true)
-				.attr('width', w + margins*2)
-				.attr('height', h + margins*2);
-			g.append('rect')
-				.classed('panel-bg', true)
+		      	var g = svg.select('g')
+				.attr('transform', 'translate(' + margin.left +
+						',' + margin.top + ')');
+		     
+		      	g.append('rect')
+				.attr('class', 'background')
 				.style('pointer-events', 'all')
-				.attr('width', w + margins)
-				.attr('height', h)
-				.on('mouseover', mouseover)
-				.on('mouseout', mouseout);
-			lines = g.append('g');
-		});
+				.style('fill', '#dddddd')
+				.attr('width', w + margin.right )
+				.attr('height', h);
+		}
 
-		sel.data(data).enter();
-		gs = sel.select('rect.panel-bg');
-		lines = gs.append('g');
-		lines.append('path')
-			.classed('area', true)
-			.style('pointer-events', 'none')
-			.attr('d', function (c) {
-				return areas[pivot](c);
+		function chart(sel) {
+			sel.each(doit);
+		}
+
+		chart.x = function (f) {
+			if (f == null) return x_val;
+			x_val = f;
+			return chart;
+		}
+
+		chart.y = function (f) {
+			if (f == null) return y_val;
+			y_val = f;
+			return chart;
+		}
+
+		return chart;
+	}
+
+	function transformData(data, pivots, x_key, y_key, fmt) {
+		var d = [];
+		pivots.forEach(function (pivot) {
+			d.push({
+				k: pivot
+				, v: []
 			});
+
+		});
+		data.forEach(function (x) {
+			d.forEach(function (y) {
+				var pivot = y.k;
+				y.v.push({
+					dt: fmt.parse(x[x_key].value)
+					, sale_price: x[y_key][pivot].value
+				});
+			});
+		});
+		return d;
 	}
 
-	function identity(x) {
-		return x;
+	function plotData(selector, data, plot) {
+		d3.select(selector).datum(data).call(plot);
 	}
-
-	var mouseover = identity;
-	var mouseout = identity;
 
 };
 
@@ -201,6 +198,12 @@ function compose(f, g) {
 	return function (x) {
 		return f(g(x));
 	}
+}
+
+function prop(k) {
+	return function (x) {
+		return x[k];
+	};
 }
 
 });
