@@ -25,10 +25,50 @@ var viz = {
  */
 viz.handleErrors = function (data, resp) {
 	/* Make sure we can figure out whether there is an error condition. */
-	if (!data || !resp || !resp.fields) {
+	if (!data || !resp) {
 		return null;
 	}
+
+	if (resp.fields.dimensions.length !== 1) {
+		this.addError({
+			group: 'dimension-req'
+			, title: 'Incompatible Data'
+			, message: 'One dimension is required'
+		});
+		return false;
+	}
+
+	if (resp.fields.measures.length !== 1) {
+		this.addError({
+			group: 'measure-req'
+			, title: 'Incompatible Data'
+			, message: 'One measure is required'
+		});
+		return false;
+	}
+
+	if (!resp.pivots ||
+			!resp.pivots.every(no_bar)) {
+		this.addError({
+			group: 'pivot-req'
+			, title: 'Incompatible Data'
+			, message: 'One pivot is required'
+		});
+		return false;
+	}
+
+
+	[
+		'dimension-req'
+		, 'measure-req'
+		, 'pivot-req'
+	].forEach(this.clearErrors);
+	
 	return true;
+
+	function no_bar(x) {
+		return x.key.indexOf('|') === -1;
+	}
 };
 
 /**
