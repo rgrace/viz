@@ -132,6 +132,8 @@ viz.update = function (data, element, settings, resp) {
 				.append('svg')
 				.append('g');
 
+			div.exit().remove();
+
 			var svg = div.select('svg')
 				.attr('width', w + margin.left + margin.right)
 				.attr('height', h + margin.top + margin.bottom);
@@ -143,7 +145,7 @@ viz.update = function (data, element, settings, resp) {
 		      	g.append('rect')
 				.attr('class', 'background')
 				.style('pointer-events', 'all')
-				.style('fill', '#dddddd')
+				.style('fill', 'none')
 				.attr('width', w + margin.right )
 				.attr('height', h)
 				.on('mouseover', show_circle)
@@ -239,8 +241,10 @@ viz.update = function (data, element, settings, resp) {
 
 		function show_x_pos() {
 			var x = x_scale.invert(d3.mouse(this)[0]);
-			var year = x.getFullYear() + '-' + x.getMonth();
-			var date = fmt.parse(year);
+			var str = x.getFullYear().toString() +
+				'-' +
+				(d3.format('02d')(x.getMonth() + 1)).toString();
+			var date = fmt.parse(str);
 
 			var index = 0;
 			circle.attr("cx", x_scale(date))
@@ -256,12 +260,14 @@ viz.update = function (data, element, settings, resp) {
 					return y_scale(y_val(xs[index]));
 				})
 				.text(function (c) {
-					var xs = pivot_vals(c);
-					return y_val(xs[index]);
+					var xs = pivot_vals(c)
+					, f = d3.format(',.0f')
+					;
+					return f(y_val(xs[index]));
 				});
 
 			return cur_x.attr("x", x_scale(date))
-				.text(year);
+				.text(str);
 		}
 		
 		function hide_circle() {
