@@ -1,7 +1,5 @@
 (function() {
 
-angular.module('Visualizations')
-.run(function(VisualizationManager) {
 
   // function to format axis label (sort of)
   function capitalizeFirstLetter(string) {
@@ -17,7 +15,7 @@ angular.module('Visualizations')
         + "</strong> <span style='color:red'>" + data.z + "</span>";
     });
 
-  VisualizationManager.register({
+  var viz = {
     id: 'bubble',
     label: 'Bubble',
     options: {
@@ -241,8 +239,8 @@ angular.module('Visualizations')
            .text(measure_1.name.split(".")[0].toUpperCase() + ' ' + capitalizeFirstLetter(measure_1.name.split(".")[1]));             
 
     }
-  });
+  };
 
-});
+  looker.plugins.visualizations.add(viz);
 
 }());
