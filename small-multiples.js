@@ -73,7 +73,7 @@ viz.handleErrors = function (data, resp) {
 
 /**
  * The creation method should set up the state of the DOM. In this case, we'll
- * make an SVG element to hold the chart and set the height and width.
+ * make an element to hold the chart and set the height and width.
  */
 viz.create = function (element, settings) {
 	d3.select(element)
