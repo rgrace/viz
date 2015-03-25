@@ -3,7 +3,7 @@
 ####Preliminaries:
 1. In order to utilize Looker's visualization plugin, a license feature must first be enabled. Use in-app chat, email support, or email a Looker analyst and ask them to turn on this feature. Once this is done, you will need to update your license key in the admin panel.
 2. At present, only on-premise (*i.e.*, customer hosted) Lookers support custom visualizations. This is because one needs access to the file system to add and remove custom JavaScript.
-3. Looker's Customer Support team does not troubleshoot *any* issues that pertain to custom visualizations.
+3. Looker's Customer Support team does not troubleshoot *any* issues that pertain to custom visualizations. Custom visualizations are a community supported effort. Please use issues for tracking and closing out bugs, and visit https://discourse.looker.com for how-to articles, conversations, and tips regarding custom visualizations.
 
 ####Getting Started:
 Looker versions 3.14.xx and later ship with a directory intended to hold scripts for custom visualizations and other extensions. It is located on the machine hosting looker: ```~/looker/plugins/visualizations```. This is where you'll find our heatmap example to get you started.
