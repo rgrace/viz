@@ -6,7 +6,7 @@
 3. Looker's Customer Support team does not troubleshoot *any* issues that pertain to custom visualizations. Custom visualizations are a community supported effort. Please use issues for tracking and closing out bugs, and visit https://discourse.looker.com for how-to articles, conversations, and tips regarding custom visualizations.
 
 ####Getting Started:
-Looker versions 3.14.xx and later ship with a directory intended to hold scripts for custom visualizations and other extensions. It is located on the machine hosting looker: ```~/looker/plugins/visualizations```. This is where you'll find our heatmap example to get you started.
+Looker versions 3.14.xx and later ship with a directory intended to hold scripts for custom visualizations and other extensions. It is located on the machine hosting looker: ```~/looker/plugins/visualizations```. This is where you'll find our heatmap example to get you started. You will need to read and edit the heatmap example file to use it.
 
 Once a custom visualiation script is saved in the above-mentioned directory, you can use it in the explore section or a dashboard by selecting it within the visualiation editor in list of additional visualiations (the ellipsis).
 
