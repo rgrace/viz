@@ -1,33 +1,61 @@
-// not much works
+// Eric Feinstein
+// This still needs work, the funnel has options to adjust based on area of each section. Currently the slope is constant
+
 
 (function() {
 looker.plugins.visualizations.add({
   id: 'funnel',
   label: 'Funnel'
-  // ,
-  // options: {
-  //   //start options
-  //     colorRange: {
-  //     type: 'array',
-  //     label: 'Color Ranges',
-  //     section: 'Style',
-  //     placeholder: '#fff, red, etc...',
-  //     order: 5
-  //   },
-  //     textColor: {
-  //     type: 'array',
-  //     label: 'Text Color',
-  //     section: 'Style',
-  //     placeholder: '#fff',
-  //     order: 6
-  //   },
+   ,
+  options: {
+    newWidth: {
+        type: 'array',
+        label: 'Width %',
+      section: 'Style',
+     placeholder: '1% to 100%',
+        order: 1
+      }
+      ,
 
-  //   isCurved: {
-  //       type: 'boolean',
-  //       label: '3D Funnel',
-  //     section: 'Style',
-  //       order: 2
-  //     }
+  //   //start options
+      colorRange: {
+      type: 'array',
+      label: 'Color Ranges (array)',
+      section: 'Style',
+      placeholder: '#fff, red, etc...',
+      order: 7
+    },
+      textColor: {
+      type: 'array',
+      label: 'Text Color (only one',
+      section: 'Style',
+      placeholder: '#fff',
+      order: 6
+    },
+
+    isCurved: {
+        type: 'boolean',
+        label: '3D Funnel',
+      section: 'Style',
+        order: 2,
+        default: false
+      }
+      ,
+    hoverEffects: {
+        type: 'boolean',
+        label: 'Hover Effects',
+      section: 'Style',
+        order: 3,
+        default: false
+      }     ,
+    colorType: {
+        type: 'boolean',
+        label: 'Gradient Effects',
+      section: 'Style',
+        order: 5,
+        default: false
+      }
+  //   , 
   //   , 
   //   isInverted: {
   //       type: 'boolean',
@@ -35,16 +63,17 @@ looker.plugins.visualizations.add({
   //     section: 'Style',
   //       order: 4
   //     }
-  //   , 
+    , 
 
-  //   dynamicArea: {
-  //     type: 'boolean',
-  //     label: 'Dynamic Area',
-  //     section: 'Style',
-  //     order: 1
-  //   }
+    dynamicArea: {
+      type: 'boolean',
+      label: 'Dynamic Area',
+      section: 'Style',
+      order: 4,
+      default: false
+    }
 
-  // }
+  }
 // end options
   ,
   handleErrors: function(data, resp) {
@@ -84,10 +113,15 @@ looker.plugins.visualizations.add({
 
 
   create: function(element, settings) {
+
+      var chart0 = d3.select('#chart').remove();
+      
+
       var chart1 = d3.select(element)
         .append('div')
-        .attr('width', '100%')
-        .attr('height', '100%')                 
+        .style('width', settings['newWidth']+'%'||'75%')
+        .style('height', '100%')                 
+        .style('align', 'center')                 
         .attr('id', 'chart');
      /* var chart2 = d3.select(element)
         .append("svg:svg")
@@ -100,7 +134,9 @@ looker.plugins.visualizations.add({
       
   },
   update: function(data, element, settings, resp) {
-
+    console.log('mysettings');
+    console.log(settings);
+    this.create(element,settings);
     var oldsettings = settings;
 
     if (!this.handleErrors(data, resp)) return;
@@ -138,7 +174,7 @@ looker.plugins.visualizations.add({
    // console.log(data);
     
 
-    var chart = new D3Funnel("#chart");
+    var chart = new D3Funnel("#chart",settings);
     chart.draw(newdata,options);
 
     
@@ -158,28 +194,31 @@ looker.plugins.visualizations.add({
 
 // funnel code
 
-  var D3Funnel = function(selector)
+  var D3Funnel = function(selector, settings)
   {
     this.selector = selector;
 
     // Default configuration values
     this.defaults = {
-      width: 350,
-      height: 400,
-      bottomWidth: 1/3,
+      width: '100%',
+      height: '100%',
+      bottomWidth: 1/4,
       bottomPinch: 0,
-      isCurved: true,
+      isCurved: settings['isCurved'] || false,
       curveHeight: 50,
-      fillType: "gradient",
+      fillType: settings['fillType'] || "gradient",
       isInverted: false,
-      hoverEffects: true,
-      dynamicArea: true,
+      hoverEffects: settings['hoverEffects'] || false,
+      dynamicArea: settings['dynamicArea'] || false,
       minHeight: true,
       animation: true,
       label: {
         fontSize: "14px",
-        fill: "#000000"
-      }
+        fill: settings['textColor'] || '#000000'
+      },
+      colorRange: settings['colorRange'],
+      colorType: settings['colorType']
+
     };
   };
 D3Funnel.prototype.__isArray = function(value)
@@ -351,6 +390,7 @@ D3Funnel.prototype.__isArray = function(value)
     } else {
       return "url(#gradient-" + index + ")";
     }
+
   };
 
   /**
@@ -479,7 +519,7 @@ D3Funnel.prototype.__isArray = function(value)
         "y": textY,
         "text-anchor": "middle",
         "dominant-baseline": "middle",
-        "fill": textFill,
+        "fill":  textFill,
         "pointer-events": "none"
       })
       .style("font-size", this.label.fontSize);
@@ -502,6 +542,8 @@ D3Funnel.prototype.__isArray = function(value)
       };
     }
 
+
+
     // Initialize options if not set
     options = typeof options !== "undefined" ? options : {};
 
@@ -512,9 +554,26 @@ D3Funnel.prototype.__isArray = function(value)
 
     // Prepare the configuration settings based on the defaults
     // Set the default width and height based on the container
-    var settings = this.__extend({}, this.defaults, settings);
+    var settings = this.__extend({}, this.defaults, this.settings);
     console.log("settings_extended");
     console.log(settings);
+    console.log(this.options);
+    console.log(this.defaults);
+
+    if (this.defaults['colorType'] == true) 
+    {
+      options['fillType'] = 'gradient';
+      
+      settings['fillType'] = 'gradient';
+      
+
+    } else {
+
+      options['fillType'] = 'solid';
+      settings['fillType'] = 'solid';
+     
+    }
+
 
     settings.width  = parseInt(d3.select(this.selector).style("width"), 10);
     settings.height = parseInt(d3.select(this.selector).style("height"), 10);
@@ -555,23 +614,25 @@ D3Funnel.prototype.__isArray = function(value)
 
       // If a color is not set for the record, add one
       if (!("2" in this.data[i]) || !hexExpression.test(this.data[i][2])) {
-        this.data[i][2] = colorScale(i);
+        this.data[i][2] = (settings['colorRange'] != undefined) ? settings['colorRange'][i] : colorScale(i);
       }
     }
-
+    console.log(settings['colorRange']);
     // Initialize funnel chart settings
     this.width = settings.width;
     this.height = settings.height;
     this.bottomWidth = settings.width * settings.bottomWidth;
     this.bottomPinch = settings.bottomPinch;
-    this.isCurved = settings.isCurved;
+    this.isCurved = settings['isCurved'];
     this.curveHeight = settings.curveHeight;
-    this.fillType = settings.fillType;
+    this.fillType = settings['fillType'];
     this.isInverted = settings.isInverted;
-    this.hoverEffects = settings.hoverEffects;
-    this.dynamicArea = settings.dynamicArea;
+    this.hoverEffects = settings['hoverEffects'];
+    this.dynamicArea = settings['dynamicArea'];
     this.minHeight = settings.minHeight;
     this.animation = settings.animation;
+    this.colorRange = settings['colorRange'];
+
 
     // Calculate the bottom left x position
     this.bottomLeftX = (this.width - this.bottomWidth) / 2;
