@@ -10,10 +10,10 @@ looker.plugins.visualizations.add({
       placeholder: '#fff, red, etc...'
     },
     colorMeasure: {
-      type: '',
-      label: 'Color Ranges',
+      type: 'number',
+      label: 'Measure',
       section: 'Style',
-      placeholder: '#fff, red, etc...'
+      placeholder: '1,2,3'
     }
   },
   handleErrors: function(data, resp) {
@@ -61,14 +61,11 @@ looker.plugins.visualizations.add({
       .attr('height', '100%');
   },
   update: function(data, element, settings, resp) {
-console.log(data);
 console.log(resp);
   if (!this.handleErrors(data, resp)) return;
-
     this.clearErrors('color-error');
     var colorSettings = settings.colorRange || ['white','#b3c8dc','#b3c8dc'];
     var gradientMeasure = settings.colorMeasure || '1';
-
     if (colorSettings.length <= 1) {
       this.addError({
         group: 'color-error',
@@ -76,15 +73,38 @@ console.log(resp);
         message: 'Colors must have two or more values. Each value is separated by a comma. For example "red, blue, green".'
       });
     }
+    var measures = [];
+    if (resp.fields.measures[0] !== undefined) {
+      measures.push(resp.fields.measures[0]);
+    }
+    if (resp.fields.measures[1] !== undefined) {
+      measures.push(resp.fields.measures[1]);
+    }
+    if (resp.fields.measures[2] !== undefined) {
+      measures.push(resp.fields.measures[2]);
+    }
+    if (resp.fields.table_calculations[0] !== undefined) {
+      measures.push(resp.fields.table_calculations[0]);
+    }
+    if (resp.fields.table_calculations[1] !== undefined) {
+      measures.push(resp.fields.table_calculations[1]);
+    }
     var dimension = resp.fields.dimensions[0];
-    var measure = resp.fields.measures[0];
-    var measure1 = resp.fields.measures[1] || {};
-    var measure2 = resp.fields.measures[2] || {};
+    var measure = measures[0];
+    var measure1 = measures[1] || {};
+    var measure2 = measures[2] || {};
     var pivot = resp.pivots;
+    var coloredMeasure = measure.name
 
+    if(gradientMeasure == '2'){
+        coloredMeasure = measure1.name
+    }else if(gradientMeasure == '3'){
+        coloredMeasure = measure2.name
+    };
+console.log(coloredMeasure);
     var extents = d3.extent(data.reduce(function(prev, curr) {
       var values = pivot.map(function(pivot) {
-        return curr[measure.name][pivot.key].value;
+        return curr[coloredMeasure][pivot.key].value;
       });
       return prev.concat(values);
     }, []));
@@ -176,8 +196,14 @@ console.log(resp);
       .remove();
 
     tds.style('background-color', function(d) {
-        if (d.type == 'measure' && d.data.rendered !== '') {
-          return colorScale(d.data.value || 0);
+        if ((d.type == 'measure' || d.type == 'table_calculations') && d.data.rendered !== '') {
+            if(settings.colorMeasure == '1'){
+                return colorScale(d.data.value || 0);
+            }else if(settings.colorMeasure == '2'){
+                return colorScale(d.data1.value || 0);
+            }else if(settings.colorMeasure == '3'){
+                return colorScale(d.data2.value || 0);
+            };
         }
       })
       .style('text-align', function(d) {
@@ -186,7 +212,7 @@ console.log(resp);
         }
       })
       //.html(function(d) {
-      //  return d.data.html || d.data.rendered || '∅';
+      //  return d.data.html || d.data.rendered || 'âˆ…';
       //})
       .html(function(d) {
 	  if (d.type == 'measure' && d.data.rendered !== '') {
