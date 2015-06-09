@@ -133,9 +133,9 @@
       var padding = 60;
       
       // create x,y,r scales
-      var xScale = d3.scale.linear()
-                     .domain([d3.min(x) - 5, d3.max(x) + 5])
-                     .range([padding, width - padding * 2]);
+      var xScale = d3.scale.ordinal()
+                     .domain(x)
+                     .rangePoints([padding, width - padding * 2]);
 
       var yScale = d3.scale.linear()
                      .domain([d3.min(y) - 5, d3.max(y) + 5])
