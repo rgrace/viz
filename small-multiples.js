@@ -47,8 +47,7 @@ viz.handleErrors = function (data, resp) {
 		return false;
 	}
 
-	if (!resp.pivots ||
-			!resp.pivots.every(no_bar)) {
+	if (resp.fields.pivots.length !== 1) {
 		this.addError({
 			group: 'pivot-req'
 			, title: 'Incompatible Data'
@@ -118,6 +117,8 @@ viz.update = function (data, element, settings, resp) {
 	if (!h || h <= 0 || !w || w <= 0) {
 		return;
 	}
+
+	$el.find('div').empty();
 	
 	plot = SmallMultiples(w, h, settings, resp);
 	plotData('#small-multiples-chart-box', d, plot);
