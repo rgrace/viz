@@ -1,22 +1,76 @@
 (function() {
 looker.plugins.visualizations.add({
-  id: 'heatmap',
-  label: 'Heatmap',
+  id: 'heatmap_3',
+  label: 'Heatmap_3',
   options: {
+    
+    colorPreSet:
+    {
+      type: 'string',
+      display: 'select',
+      label: 'Color Range',
+      section: 'Data',
+      values: [{'Custom': 'c'},
+      {'Tomato to Steel Blue': '#F16358,#DF645F,#CD6566,#BB666D,#A96774,#97687B,#856982,#736A89,#616B90,#4F6C97,#3D6D9E'},
+      {'Pink to Black': '#170108, #300211, #49031A, #620423, #79052B, #910734, #AA083D, #C30946, #DA0A4E, #F30B57, #F52368, #F63378, #F63C79, #F75389, #F86C9A, #F985AB, #FB9DBC, #FCB4CC, #FDCDDD, #FEE6EE'},
+      {'Green to Red': '#7FCDAE, #7ED09C, #7DD389, #85D67C, #9AD97B, #B1DB7A, #CADF79, #E2DF78, #E5C877, #E7AF75, #EB9474, #EE7772'},
+      {'White to Green': '#ffffe5,#f7fcb9 ,#d9f0a3,#addd8e,#78c679,#41ab5d,#238443,#006837,#004529'},
+      {'Sunset': '#ffffcc,#ffeda0,#fed976,#feb24c,#fd8d3c,#fc4e2a,#e31a1c,#b10026'}],
+       default: 'c',
+      order: 1
+    },
     colorRange: {
       type: 'array',
-      label: 'Color Ranges',
-      section: 'Style',
+      label: 'Custom Color Ranges',
+      section: 'Data',
+      order: 2,
       placeholder: '#fff, red, etc...'
     },
     colorMeasure: {
       type: 'number',
       label: 'Measure',
-      section: 'Style',
-      placeholder: '1,2,3'
-    }
+      section: 'Data',
+      placeholder: '1,2 or 3',
+      order: 3
+    },
+      cellBorders: {
+      type: "boolean",
+      label: "Show Cell Borders",
+      section: "Data",
+      default: true,
+      order: 4
+    },      
+    nullCellBorders: {
+      type: "boolean",
+      label: "Show Cell Borders for null values",
+      section: "Data",
+      default: false,
+      order: 4
+    },
+    headBackground:  {
+      type: 'string',
+      label: 'Heading Background Color',
+      section: 'Heading',
+      placeholder: '#CCD8E4',
+      order: 1
+    },
+    headText: {
+      type: 'string',
+      label: 'Heading Text Color',
+      section: 'Heading',
+      placeholder: '#000000',
+      order: 2
+    },
+      headBorders: {
+      type: "boolean",
+      label: "Show Borders",
+      section: "Heading",
+      default: true,
+      order: 3}
   },
+
   handleErrors: function(data, resp) {
+
     if (!resp || !resp.fields) return null;
     if (resp.fields.dimensions.length != 1) {
       this.addError({
@@ -42,7 +96,7 @@ looker.plugins.visualizations.add({
       this.addError({
         group: 'measure-req',
         title: 'Incompatible Data',
-        message: 'One measure is required'
+        message: 'One to Three measures are required'
       });
       return false;
     } else {
@@ -57,15 +111,67 @@ looker.plugins.visualizations.add({
       .style('height', '100%')
       .append('table')
       .attr('class', 'heatmap')
+      .attr('id', 'heatmap-table')
       .attr('width', '100%')
       .attr('height', '100%');
   },
   update: function(data, element, settings, resp) {
-console.log(resp);
+
+      // var tableOffset = $("#heatmap-table").offset().top;
+      // var $header = $("#heatmap-table1 > thead").clone();
+      // var $fixedHeader = $("#heatmap-table").append($header);
+
+      // $(window).bind("scroll", function() {
+      //     var offset = $(this).scrollTop();
+
+      //     if (offset >= tableOffset && $fixedHeader.is(":hidden")) {
+      //         $fixedHeader.show();
+      //     }
+      //     else if (offset < tableOffset) {
+      //         $fixedHeader.hide();
+      //     }
+      // });
+
+
+    // var $sidebar = $(".thead"),
+    //     $window = $('#heatmap-table'),
+    //     offset = $sidebar.offset(),
+    //     topPadding = 0;
+
+    // $window.scroll(function() {
+    //     console.log("scrolling");
+    //     if ($window.scrollTop() > offset.top) {
+    //         $sidebar.stop().animate({
+    //             top: $window.scrollTop() - offset.top + topPadding
+    //         });
+    //     } else {
+    //         $sidebar.stop().animate({
+    //             top: 0
+    //         });
+    //     }
+    // });
+
+
+
+// console.log(resp);
   if (!this.handleErrors(data, resp)) return;
     this.clearErrors('color-error');
-    var colorSettings = settings.colorRange || ['white','#b3c8dc','#b3c8dc'];
-    var gradientMeasure = settings.colorMeasure || '1';
+    //var customColorSettings = settings.colorRange || ['white','#b3c8dc','#b3c8dc'];
+   
+    if (settings.colorPreSet  == 'c') {
+      var colorSettings =  settings.colorRange || ['white','#b3c8dc','#b3c8dc'];
+    } else {
+      var colorSettings =  settings.colorPreSet.split(",");
+    };
+
+    var gradientMeasure = settings.colorMeasure || 1;
+
+    var headText = settings.headText || '#000000';
+    var headBackground = settings.headBackground || '#CCD8E4';
+    var headBorders = settings.headBorders || false;
+    var cellBorders = settings.cellBorders || false;
+    var nullCellBorders = settings.nullCellBorders || false;
+
     if (colorSettings.length <= 1) {
       this.addError({
         group: 'color-error',
@@ -91,6 +197,7 @@ console.log(resp);
     }
     var dimension = resp.fields.dimensions[0];
     var measure = measures[0];
+    console.log(resp);
     var measure1 = measures[1] || {};
     var measure2 = measures[2] || {};
     var pivot = resp.pivots;
@@ -101,7 +208,7 @@ console.log(resp);
     }else if(gradientMeasure == '3'){
         coloredMeasure = measure2.name
     };
-console.log(coloredMeasure);
+// console.log(coloredMeasure);
     var extents = d3.extent(data.reduce(function(prev, curr) {
       var values = pivot.map(function(pivot) {
         return curr[coloredMeasure][pivot.key].value;
@@ -148,7 +255,25 @@ console.log(coloredMeasure);
     theadTd.enter()
       .append('td');
 
-    theadTd.style('text-align','center');
+    theadTd.style('text-align','center')      
+    .style('border', function(d) {
+        console.log(headBorders);
+        if (d == null|| d=='' || headBorders == false) {  // from settings
+          return '0px solid black';
+        } else {
+          return '1px solid black';
+        }
+      })
+      .style('background-color',function(d) {
+        console.log(d);
+        if (d == null|| d=='' ) {
+          return '';
+        } else {
+          return headBackground; // from settings
+        }
+      })
+      .style('font-weight','900')
+      .style('color', headText)      ; // from settings
 
     theadTd.exit()
       .remove();
@@ -191,7 +316,6 @@ console.log(coloredMeasure);
       });
     tds.enter()
       .append('td');
-
     tds.exit()
       .remove();
 
@@ -206,6 +330,17 @@ console.log(coloredMeasure);
             };
         }
       })
+      .style('border', function(d) {
+        // console.log(d.data.value);
+        if ((d.data.value  == null && !nullCellBorders) || !(d.type == 'measure') ) {
+          return '0px solid black';
+        } else if (!cellBorders) {
+          return '0px solid black';
+        } else {
+          return '1px solid black';
+        }
+      })
+      .style('valign','middle')
       .style('text-align', function(d) {
         if (d.type == 'measure') {
           return 'center';
@@ -216,9 +351,38 @@ console.log(coloredMeasure);
       //})
       .html(function(d) {
 	  if (d.type == 'measure' && d.data.rendered !== '') {
-              return '<span style="color:#2c502a;font-weight:900">'+(d.data.rendered || '')+'<br/></span><span style="color:#2c502a;font-weight:300">'+(d.data1.rendered || '')+'<br/></span><span style="color:#2c502a;font-weight:300">'+(d.data2.rendered || '')+'</span>'}else{
+              var outputHtml = '';
+              var addBreak = 0;
+
+              if (d.data.rendered || '' !== ''){
+                 outputHtml = outputHtml.concat('<span style="color:#2c502a;font-weight:900;">');
+                 outputHtml = outputHtml.concat(d.data.rendered || '' );
+                 outputHtml = outputHtml.concat('</span>');
+                 addBreak = 1
+              };
+              if (d.data1.rendered || '' !== ''){
+                 outputHtml = outputHtml.concat('<span style="color:#2c502a;font-weight:300;">');
+                 if(addBreak = 1){
+                     outputHtml = outputHtml.concat('<br/>');
+                 };
+                 outputHtml = outputHtml.concat(d.data1.rendered || '' );
+                 outputHtml = outputHtml.concat('</span>');
+                 addBreak = 1;
+              };
+              if (d.data2.rendered || '' !== ''){
+                 outputHtml = outputHtml.concat('<span style="color:#2c502a;font-weight:300;">');
+                if(addBreak = 1){
+                     outputHtml = outputHtml.concat('<br/>');
+                 };
+                 outputHtml = outputHtml.concat(d.data2.rendered || '' );
+                 outputHtml = outputHtml.concat('</span>');
+                 addBreak = 1;
+              };
+              return outputHtml
+            }
+              else{
               return '<span style="color:#2c502a;font-weight:900">'+(d.data.rendered || '')
-          }
+               }
       })
       .on('click', function(d) {
         d3.event.preventDefault();
