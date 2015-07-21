@@ -1,7 +1,7 @@
 (function() {
 looker.plugins.visualizations.add({
-  id: 'heatmap_3',
-  label: 'Heatmap_3',
+  id: 'heatmap',
+  label: 'Heatmap',
   options: {
     
     colorPreSet:
@@ -61,12 +61,19 @@ looker.plugins.visualizations.add({
       placeholder: '#000000',
       order: 2
     },
-      headBorders: {
+    headBorders: {
       type: "boolean",
       label: "Show Borders",
       section: "Heading",
       default: true,
-      order: 3}
+      order: 3
+    },
+    headPrefix: {
+      type: "string",
+      label: "Prefix",
+      section: "Heading",
+      placeholder: "Week ",
+      order: 4}
   },
 
   handleErrors: function(data, resp) {
@@ -167,6 +174,7 @@ looker.plugins.visualizations.add({
     var gradientMeasure = settings.colorMeasure || 1;
 
     var headText = settings.headText || '#000000';
+    var headerPrefix = settings.headPrefix || '';
     var headBackground = settings.headBackground || '#CCD8E4';
     var headBorders = settings.headBorders || false;
     var cellBorders = settings.cellBorders || false;
@@ -197,7 +205,7 @@ looker.plugins.visualizations.add({
     }
     var dimension = resp.fields.dimensions[0];
     var measure = measures[0];
-    console.log(resp);
+    // console.log(resp);
     var measure1 = measures[1] || {};
     var measure2 = measures[2] || {};
     var pivot = resp.pivots;
@@ -234,7 +242,17 @@ looker.plugins.visualizations.add({
 
     var tableHeaderData = [null];
     pivot.forEach(function(pivot) {
-      tableHeaderData.push(pivot.key);
+      console.log(pivot.key);
+        var outputHeader = "";
+
+        if (headerPrefix == '') {
+          outputHeader = pivot.key.toString();
+        } else {
+          outputHeader = outputHeader.concat(headerPrefix.trim() ,' '  , pivot.key.toString());
+          console.log(' key' + outputHeader);
+        }
+
+      tableHeaderData.push(outputHeader);
     });
 
     var thead = table.selectAll('thead')
@@ -250,7 +268,10 @@ looker.plugins.visualizations.add({
       .append('tr');
 
     var theadTd = theadRow.selectAll('td')
-      .data(function(d) { return d; });
+      .data(function(d) { 
+        console.log(d);
+        return d;
+      });
 
     theadTd.enter()
       .append('td');
@@ -307,8 +328,8 @@ looker.plugins.visualizations.add({
         tdData.push({type: 'dimension', data: datum[dimension.name]});
         datum[dimension.name];
         var measureData = datum[measure.name];
-	var measureData1 = datum[measure1.name] || '';
-	var measureData2 = datum[measure2.name] || '';
+  var measureData1 = datum[measure1.name] || '';
+  var measureData2 = datum[measure2.name] || '';
         pivot.forEach(function(pivot) {
           tdData.push({type: 'measure', data: measureData[pivot.key], data1: measureData1[pivot.key] || {} ,data2: measureData2[pivot.key] || {} });
         });
@@ -350,7 +371,7 @@ looker.plugins.visualizations.add({
       //  return d.data.html || d.data.rendered || 'âˆ…';
       //})
       .html(function(d) {
-	  if (d.type == 'measure' && d.data.rendered !== '') {
+    if (d.type == 'measure' && d.data.rendered !== '') {
               var outputHtml = '';
               var addBreak = 0;
 
