@@ -71,6 +71,14 @@ looker.plugins.visualizations.add({
       section: 'Style',
       order: 4,
       default: false
+    }    , 
+
+    showChange: {
+      type: 'boolean',
+      label: 'Show Conversion Rate',
+      section: 'Style',
+      order: 6,
+      default: false
     }
 
   }
@@ -134,63 +142,28 @@ looker.plugins.visualizations.add({
       
   },
   update: function(data, element, settings, resp) {
-    console.log('mysettings');
-    console.log(settings);
     this.create(element,settings);
     var oldsettings = settings;
 
     if (!this.handleErrors(data, resp)) return;
     
     var dimension = resp.fields.dimensions[0].name;
-
-    
-    //console.log(dimension);
-    
     var measure = resp.fields.measures[0].name;
-
-  //  console.log(measure);
-
-//    console.log(data);
-
-
     var newdata = [];
 
     for (var i = data.length - 1; i >= 0; i--) {
       newdata[i] = [data[i][dimension].value ,  data[i][measure].value];
     };
-    
-   // console.log(newdata);
+  
+      var options = {};
 
- /*   var data = {
-            normal: [
-              ["Applicants",   1],
-              ["Pre-screened", 2],
-              ["Interviewed",  3],
-              ["Hired",        4]
-            ]};*/
-
-    var options = {};
-
-   // console.log(data);
-    
-
-    var chart = new D3Funnel("#chart",settings);
+     var chart = new D3Funnel("#chart",settings);
     chart.draw(newdata,options);
-
-    
-
-    
+   
 
   },
 
-
-
-
-
-
 });
-
-
 
 // funnel code
 
@@ -210,6 +183,7 @@ looker.plugins.visualizations.add({
       isInverted: false,
       hoverEffects: settings['hoverEffects'] || false,
       dynamicArea: settings['dynamicArea'] || false,
+      showChange: settings['showChange'] || false,
       minHeight: true,
       animation: true,
       label: {
@@ -226,14 +200,7 @@ D3Funnel.prototype.__isArray = function(value)
     return Object.prototype.toString.call(value) === "[object Array]";
   };
 
-  /**
-   * Extends an object with the members of another.
-   *
-   * @param {Object} a The object to be extended.
-   * @param {Object} b The object to clone from.
-   *
-   * @return {Object}
-   */
+
   D3Funnel.prototype.__extend = function(a, b, c)
   {
     var prop;
@@ -251,42 +218,7 @@ D3Funnel.prototype.__isArray = function(value)
     return a;
   };
 
-  /**
-   * Draw onto the container with the data and configuration specified. This
-   * will clear any previous SVG element in the container and draw a new
-   * funnel chart on top of it.
-   *
-   * @param {array}  data    A list of rows containing a category, a count,
-   *                         and optionally a color (in hex).
-   * @param {Object} options An optional configuration object for chart
-   *                         options.
-   *
-   * @param {int}      options.width        Initial width. Specified in pixels.
-   * @param {int}      options.height       Chart height. Specified in pixels.
-   * @param {int}      options.bottomWidth  Specifies the width percent the
-   *                                        bottom should be in relation to the
-   *                                        chart's overall width.
-   * @param {int}      options.bottomPinch  How many sections (from the bottom)
-   *                                        should be "pinched" to have fixed
-   *                                        width defined by options.bottomWidth.
-   * @param {bool}     options.isCurved     Whether or not the funnel is curved.
-   * @param {int}      options.curveHeight  The height of the curves. Only
-   *                                        functional if isCurve is set.
-   * @param {string}   options.fillType     The section background type. Either
-   *                                        "solid" or "gradient".
-   * @param {bool}     options.isInverted   Whether or not the funnel should be
-   *                                        inverted to a pyramid.
-   * @param {bool}     options.hoverEffects Whether or not the funnel hover
-   *                                        effects should be shown.
-   * @param {bool}     options.dynamicArea  Whether or not the area should be
-   *                                        dynamically calculated based on
-   *                                        data counts.
-   * @param {bool|int} options.minHeight    The minimum height of a level.
-   * @param {int}      options.animation    The load animation speed. If empty,
-   *                                        there will be no load animation.
-   * @param {Object}   options.label
-   * @param {Object}   options.label.fontSize
-   */
+
   D3Funnel.prototype.draw = function(data, options)
   {
     // Initialize chart options
@@ -427,7 +359,7 @@ D3Funnel.prototype.__isArray = function(value)
 
     // Construct the top of the trapezoid and leave the other elements
     // hovering around to expand downward on animation
-    console.log(this.isCurved);
+    // console.log(this.isCurved);
     if (!this.isCurved) {
       beforePath = "M" + paths[0][0] + "," + paths[0][1] +
         " L" + paths[1][0] + "," + paths[1][1] +
@@ -503,7 +435,14 @@ D3Funnel.prototype.__isArray = function(value)
   {
     var i = index;
     var paths = this.sectionPaths[index];
-    var textStr = this.data[i][0] + ": " + this.data[i][1].toLocaleString();
+    var textStr = this.data[i][0] + ": " + this.data[i][1].toLocaleString() ;
+    
+    if (i>0 && this.showChange) {
+      var percConverted = parseInt(100*((this.data[i][1]) / this.data[i-1][1]));
+      // console.log(percConverted*100);
+      textStr = textStr + " (" + percConverted.toLocaleString() + "%)";
+    }
+    
    // console.log(textStr)
     var textFill = this.data[i][3] || this.label.fill;
 
@@ -555,10 +494,10 @@ D3Funnel.prototype.__isArray = function(value)
     // Prepare the configuration settings based on the defaults
     // Set the default width and height based on the container
     var settings = this.__extend({}, this.defaults, this.settings);
-    console.log("settings_extended");
-    console.log(settings);
-    console.log(this.options);
-    console.log(this.defaults);
+    // console.log("settings_extended");
+    // // console.log(settings);
+    // console.log(this.options);
+    // console.log(this.defaults);
 
     if (this.defaults['colorType'] == true) 
     {
@@ -617,7 +556,7 @@ D3Funnel.prototype.__isArray = function(value)
         this.data[i][2] = (settings['colorRange'] != undefined) ? settings['colorRange'][i] : colorScale(i);
       }
     }
-    console.log(settings['colorRange']);
+    // console.log(settings['colorRange']);
     // Initialize funnel chart settings
     this.width = settings.width;
     this.height = settings.height;
@@ -632,6 +571,7 @@ D3Funnel.prototype.__isArray = function(value)
     this.minHeight = settings.minHeight;
     this.animation = settings.animation;
     this.colorRange = settings['colorRange'];
+    this.showChange = settings['showChange'];
 
 
     // Calculate the bottom left x position
