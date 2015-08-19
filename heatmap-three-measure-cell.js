@@ -1,7 +1,7 @@
 (function() {
 looker.plugins.visualizations.add({
-  id: 'heatmap_3',
-  label: 'Heatmap_3',
+  id: 'heatmap',
+  label: 'Heatmap',
   options: {
     
     colorPreSet:
@@ -28,7 +28,7 @@ looker.plugins.visualizations.add({
     },
     colorMeasure: {
       type: 'number',
-      label: 'Measure',
+      label: 'Measure to Color',
       section: 'Data',
       placeholder: '1,2 or 3',
       order: 3
@@ -45,8 +45,26 @@ looker.plugins.visualizations.add({
       label: "Show Cell Borders for null values",
       section: "Data",
       default: false,
-      order: 4
-    },
+      order: 5
+    },   
+    verticalAlign: {
+      type: 'string',
+      display: 'select',
+      label: 'Cell Alignment',
+      section: 'Data',
+      values: [{'Top': 'top'},
+      {'Middle': 'middle'},
+      {'Bottom': 'bottom'}],
+       default: 'top',
+       order: 6
+    },      
+    colorBottom: {
+      type: "boolean",
+      label: "Color Third Measure",
+      section: "Data",
+      default: true,
+      order: 7
+    },   
     headBackground:  {
       type: 'string',
       label: 'Heading Background Color',
@@ -61,12 +79,26 @@ looker.plugins.visualizations.add({
       placeholder: '#000000',
       order: 2
     },
-      headBorders: {
+    headBorders: {
       type: "boolean",
       label: "Show Borders",
       section: "Heading",
       default: true,
-      order: 3}
+      order: 3
+    },
+    headPrefix: {
+      type: "string",
+      label: "Prefix",
+      section: "Heading",
+      placeholder: "Week ",
+      order: 4},
+
+    headTitle: {
+      type: "string",
+      label: "Title",
+      section: "Heading",
+      placeholder: "Enter a new title ",
+      order: 5}
   },
 
   handleErrors: function(data, resp) {
@@ -167,10 +199,23 @@ looker.plugins.visualizations.add({
     var gradientMeasure = settings.colorMeasure || 1;
 
     var headText = settings.headText || '#000000';
+    var headerPrefix = settings.headPrefix || '';
     var headBackground = settings.headBackground || '#CCD8E4';
+    var headTitle = settings.headTitle || '';
     var headBorders = settings.headBorders || false;
     var cellBorders = settings.cellBorders || false;
+    var colorBottom = settings.colorBottom || false;
     var nullCellBorders = settings.nullCellBorders || false;
+    var verticalAlign = settings.verticalAlign || 'top';
+
+    var colorBottomInput = '';
+
+    if (!colorBottom) {
+      colorBottomInput = 'background-color:#f6f8fa;';
+    }
+    else {
+      colorBottomInput = '';
+    }
 
     if (colorSettings.length <= 1) {
       this.addError({
@@ -197,7 +242,7 @@ looker.plugins.visualizations.add({
     }
     var dimension = resp.fields.dimensions[0];
     var measure = measures[0];
-    console.log(resp);
+    // console.log(resp);
     var measure1 = measures[1] || {};
     var measure2 = measures[2] || {};
     var pivot = resp.pivots;
@@ -234,7 +279,18 @@ looker.plugins.visualizations.add({
 
     var tableHeaderData = [null];
     pivot.forEach(function(pivot) {
-      tableHeaderData.push(pivot.key);
+      console.log(pivot.key);
+        var outputHeader = "";
+
+        if (headerPrefix == '') {
+          outputHeader = pivot.key.toString();
+        } else {
+          outputHeader = outputHeader.concat(headerPrefix.trim() ,' '  , pivot.key.toString());
+          console.log(' key' + outputHeader);
+        }
+
+      tableHeaderData.push(outputHeader);
+      tableHeaderData[0] = headTitle || null;
     });
 
     var thead = table.selectAll('thead')
@@ -250,7 +306,10 @@ looker.plugins.visualizations.add({
       .append('tr');
 
     var theadTd = theadRow.selectAll('td')
-      .data(function(d) { return d; });
+      .data(function(d) { 
+        console.log(d);
+        return d;
+      });
 
     theadTd.enter()
       .append('td');
@@ -258,7 +317,7 @@ looker.plugins.visualizations.add({
     theadTd.style('text-align','center')      
     .style('border', function(d) {
         console.log(headBorders);
-        if (d == null|| d=='' || headBorders == false) {  // from settings
+        if (d == null|| d=='' || d==headTitle || headBorders == false) {  // from settings
           return '0px solid black';
         } else {
           return '1px solid black';
@@ -266,7 +325,7 @@ looker.plugins.visualizations.add({
       })
       .style('background-color',function(d) {
         console.log(d);
-        if (d == null|| d=='' ) {
+        if (d == null|| d=='' || d==headTitle ) {
           return '';
         } else {
           return headBackground; // from settings
@@ -307,8 +366,8 @@ looker.plugins.visualizations.add({
         tdData.push({type: 'dimension', data: datum[dimension.name]});
         datum[dimension.name];
         var measureData = datum[measure.name];
-	var measureData1 = datum[measure1.name] || '';
-	var measureData2 = datum[measure2.name] || '';
+        var measureData1 = datum[measure1.name] || '';
+        var measureData2 = datum[measure2.name] || '';
         pivot.forEach(function(pivot) {
           tdData.push({type: 'measure', data: measureData[pivot.key], data1: measureData1[pivot.key] || {} ,data2: measureData2[pivot.key] || {} });
         });
@@ -332,7 +391,7 @@ looker.plugins.visualizations.add({
       })
       .style('border', function(d) {
         // console.log(d.data.value);
-        if ((d.data.value  == null && !nullCellBorders) || !(d.type == 'measure') ) {
+        if ((d.data.value  == null && !nullCellBorders) || d==headTitle|| !(d.type == 'measure') ) {
           return '0px solid black';
         } else if (!cellBorders) {
           return '0px solid black';
@@ -340,7 +399,16 @@ looker.plugins.visualizations.add({
           return '1px solid black';
         }
       })
-      .style('valign','middle')
+      .style('vertical-align', verticalAlign)
+      .style('white-space', function(d) {
+        // console.log(d.data.value); 
+        if (!(d.type == 'measure')) {
+          return 'nowrap';
+        } else {
+          return 'normal';
+        }
+      })  
+
       .style('text-align', function(d) {
         if (d.type == 'measure') {
           return 'center';
@@ -350,7 +418,7 @@ looker.plugins.visualizations.add({
       //  return d.data.html || d.data.rendered || 'âˆ…';
       //})
       .html(function(d) {
-	  if (d.type == 'measure' && d.data.rendered !== '') {
+    if (d.type == 'measure' && d.data.rendered !== '') {
               var outputHtml = '';
               var addBreak = 0;
 
@@ -364,19 +432,20 @@ looker.plugins.visualizations.add({
                  outputHtml = outputHtml.concat('<span style="color:#2c502a;font-weight:300;">');
                  if(addBreak = 1){
                      outputHtml = outputHtml.concat('<br/>');
-                 };
-                 outputHtml = outputHtml.concat(d.data1.rendered || '' );
+                 }; 
+                 outputHtml = outputHtml.concat(d.data1.rendered || '' );                
                  outputHtml = outputHtml.concat('</span>');
+
                  addBreak = 1;
               };
               if (d.data2.rendered || '' !== ''){
-                 outputHtml = outputHtml.concat('<span style="color:#2c502a;font-weight:300;">');
-                if(addBreak = 1){
-                     outputHtml = outputHtml.concat('<br/>');
-                 };
+
+                 outputHtml = outputHtml.concat('<span style="',colorBottomInput,'width:100%;display:block;color:#2c502a;font-weight:300;">');
+                 // if(addBreak = 1){
+                 //     outputHtml = outputHtml.concat('<br/>');
+                 // };                 
                  outputHtml = outputHtml.concat(d.data2.rendered || '' );
                  outputHtml = outputHtml.concat('</span>');
-                 addBreak = 1;
               };
               return outputHtml
             }

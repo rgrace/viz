@@ -79,6 +79,14 @@ looker.plugins.visualizations.add({
       section: 'Style',
       order: 6,
       default: false
+    }    , 
+
+    showChange: {
+      type: 'boolean',
+      label: 'Show Conversion Rate',
+      section: 'Style',
+      order: 6,
+      default: false
     }
 
   }
