@@ -70,7 +70,7 @@ looker.plugins.visualizations.add({
       label: 'Dynamic Area',
       section: 'Style',
       order: 4,
-      default: false
+      default: true
     }    , 
 
     showChange: {
