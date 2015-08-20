@@ -1,6 +1,6 @@
 **Custom Funnel Diagram**
 
-![funnel image](funnel.jpg "Funnel Visualization")
+![funnel image](funnel.png "Funnel Visualization")
 
 This diagram allows you to segment your data into sections of a funnel. Such as customers going through a sales pipeline, or events going to conversion. 
 
@@ -19,3 +19,7 @@ Create a look with one measure and one dimension. The sort is important, typical
 | Style | Gradient Effects | Visually adds a gradient to the colors of each segment |
 | Style | Show Conversion Rate | Calculates percent of previous on the value label |
 | Style | Color Ranges | Array for segment colors | 
+
+
+
+![funnel image](funnel2.png "Funnel Visualization")
