@@ -3,7 +3,7 @@
 
 This diagram allows you to show affinity between two dimensions. This is helpful for showing customer paths, market basket analysis, among others. 
 
-![funnel image](chord.jpg "Funnel Visualization")
+![Chord image](../images/chord.jpg "Chord Visualization")
 
 **How it works**
 
