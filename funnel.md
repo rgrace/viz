@@ -6,7 +6,7 @@ This diagram allows you to segment your data into sections of a funnel. Such as 
 
 **How it works**
 
-Create a look with one measure and one dimension. The sort is important, typically sort the measure DESC as the funnel follows this direction.
+Create a look with one measure and one dimension. The sort is important, typically sort the measure descending as the funnel follows this direction.
 
 **Settings**
 
