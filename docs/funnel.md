@@ -2,7 +2,7 @@
 
 This diagram allows you to segment your data into sections of a funnel. Such as customers going through a sales pipeline, or events going to conversion. 
 
-![funnel image](funnel.png "Funnel Visualization")
+![funnel image](../images/funnel.png "Funnel Visualization")
 
 **How it works**
 
@@ -23,4 +23,4 @@ Create a look with one measure and one dimension. The sort is important, typical
 
 **More Images**
 
-![funnel image](funnel2.png "Funnel Visualization")
+![funnel image](../images/funnel2.png "Funnel Visualization")
