@@ -1,4 +1,4 @@
-**Custom Funnel Diagram**
+##Custom Funnel Diagram##
 
 ![funnel image](funnel.png "Funnel Visualization")
 
