@@ -1,5 +1,7 @@
 **Custom Funnel Diagram**
 
+![funnel image](funnel.jpg "Funnel Visualization")
+
 This diagram allows you to segment your data into sections of a funnel. Such as customers going through a sales pipeline, or events going to conversion. 
 
 **How it works**
