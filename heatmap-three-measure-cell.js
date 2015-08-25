@@ -1,7 +1,7 @@
 (function() {
 looker.plugins.visualizations.add({
-  id: 'heatmap',
-  label: 'Heatmap',
+  id: 'heatmap_3',
+  label: 'Heatmap_3',
   options: {
     
     colorPreSet:
@@ -25,6 +25,20 @@ looker.plugins.visualizations.add({
       section: 'Data',
       order: 2,
       placeholder: '#fff, red, etc...'
+    },    
+    colorMinRange: {
+      type: 'number',
+      label: 'Min Range to Color',
+      section: 'Data',
+      order: 2.51,
+      placeholder: 'min'
+    },
+    colorMaxRange: {
+      type: 'number',
+      label: 'Max Range to Color',
+      section: 'Data',
+      order: 2.52,
+      placeholder: 'max'
     },
     colorMeasure: {
       type: 'number',
@@ -46,6 +60,14 @@ looker.plugins.visualizations.add({
       section: "Data",
       default: false,
       order: 5
+    },      
+    cellBorderColor: {
+      type: "string",
+      label: "Border Color",
+      section: "Data",
+      placeholder: '#000000',
+      default: '#000000',
+      order: 6
     },   
     verticalAlign: {
       type: 'string',
@@ -56,15 +78,22 @@ looker.plugins.visualizations.add({
       {'Middle': 'middle'},
       {'Bottom': 'bottom'}],
        default: 'top',
-       order: 6
+       order: 8
     },      
-    colorBottom: {
+    colorFirstColumn: {
       type: "boolean",
-      label: "Color Third Measure",
+      label: "Color First Column",
       section: "Data",
       default: true,
-      order: 7
-    },   
+      order: 10
+    },    
+    // colorBottom: {
+    //   type: "boolean",
+    //   label: "Color Third Measure",
+    //   section: "Data",
+    //   default: true,
+    //   order: 7
+    // },   
     headBackground:  {
       type: 'string',
       label: 'Heading Background Color',
@@ -86,19 +115,27 @@ looker.plugins.visualizations.add({
       default: true,
       order: 3
     },
+    headBorderColor: {
+      type: "string",
+      label: "Border Color",
+      section: "Heading",
+      placeholder: '#000000',
+      default: '#000000',
+      order: 4
+    },
     headPrefix: {
       type: "string",
       label: "Prefix",
       section: "Heading",
       placeholder: "Week ",
-      order: 4},
+      order: 6},
 
     headTitle: {
       type: "string",
       label: "Title",
       section: "Heading",
       placeholder: "Enter a new title ",
-      order: 5}
+      order: 8}
   },
 
   handleErrors: function(data, resp) {
@@ -196,6 +233,8 @@ looker.plugins.visualizations.add({
       var colorSettings =  settings.colorPreSet.split(",");
     };
 
+    var colorMinMaxRange = [settings.colorMinRange || null , settings.colorMaxRange || null ];
+      // console.log(colorMinMaxRange);
     var gradientMeasure = settings.colorMeasure || 1;
 
     var headText = settings.headText || '#000000';
@@ -203,19 +242,22 @@ looker.plugins.visualizations.add({
     var headBackground = settings.headBackground || '#CCD8E4';
     var headTitle = settings.headTitle || '';
     var headBorders = settings.headBorders || false;
+    var headBorderColor = settings.headBorderColor || '#000000';
     var cellBorders = settings.cellBorders || false;
-    var colorBottom = settings.colorBottom || false;
+    var cellBorderColor = settings.cellBorderColor || '#000000';
+    // var colorBottom = settings.colorBottom || false;
+    var colorFirstColumn = settings.colorFirstColumn || false;
     var nullCellBorders = settings.nullCellBorders || false;
     var verticalAlign = settings.verticalAlign || 'top';
 
-    var colorBottomInput = '';
+    // var colorBottomInput = '';
 
-    if (!colorBottom) {
-      colorBottomInput = 'background-color:#f6f8fa;';
-    }
-    else {
-      colorBottomInput = '';
-    }
+    // if (!colorBottom) {
+    //   colorBottomInput = 'background-color:#f6f8fa;';
+    // }
+    // else {
+    //   colorBottomInput = '';
+    // }
 
     if (colorSettings.length <= 1) {
       this.addError({
@@ -254,17 +296,33 @@ looker.plugins.visualizations.add({
         coloredMeasure = measure2.name
     };
 // console.log(coloredMeasure);
+
+    // return min/max of an array
     var extents = d3.extent(data.reduce(function(prev, curr) {
       var values = pivot.map(function(pivot) {
-        return curr[coloredMeasure][pivot.key].value;
+        // console.log(curr[coloredMeasure][pivot.key].value);
+
+        // test min and max, return only values in between
+
+
+        if(!(colorMinMaxRange[0]==null) && curr[coloredMeasure][pivot.key].value < Number(colorMinMaxRange[0])){
+          return colorMinMaxRange[0];
+
+        }
+        else if(!(colorMinMaxRange[1]==null) && curr[coloredMeasure][pivot.key].value > Number(colorMinMaxRange[1])){
+          return colorMinMaxRange[1]
+        }
+        else
+          return curr[coloredMeasure][pivot.key].value;
       });
       return prev.concat(values);
     }, []));
-
+    // console.log(extents);
     //they want these to be hidden compeltely
     //if (!extents[0] && !extents[1]) {
     //  extents = [0, 0];
     //}
+
 
     var extentRange = extents[1] - extents[0];
     var extentInterval = extentRange / (colorSettings.length - 1);
@@ -279,14 +337,14 @@ looker.plugins.visualizations.add({
 
     var tableHeaderData = [null];
     pivot.forEach(function(pivot) {
-      console.log(pivot.key);
+      // console.log(pivot.key);
         var outputHeader = "";
 
         if (headerPrefix == '') {
           outputHeader = pivot.key.toString();
         } else {
           outputHeader = outputHeader.concat(headerPrefix.trim() ,' '  , pivot.key.toString());
-          console.log(' key' + outputHeader);
+          // console.log(' key' + outputHeader);
         }
 
       tableHeaderData.push(outputHeader);
@@ -307,7 +365,7 @@ looker.plugins.visualizations.add({
 
     var theadTd = theadRow.selectAll('td')
       .data(function(d) { 
-        console.log(d);
+        // console.log(d);
         return d;
       });
 
@@ -316,15 +374,15 @@ looker.plugins.visualizations.add({
 
     theadTd.style('text-align','center')      
     .style('border', function(d) {
-        console.log(headBorders);
+        // console.log(headBorders);
         if (d == null|| d=='' || d==headTitle || headBorders == false) {  // from settings
           return '0px solid black';
         } else {
-          return '1px solid black';
+          return '1px solid ' + headBorderColor;
         }
       })
       .style('background-color',function(d) {
-        console.log(d);
+        // console.log(d);
         if (d == null|| d=='' || d==headTitle ) {
           return '';
         } else {
@@ -368,8 +426,10 @@ looker.plugins.visualizations.add({
         var measureData = datum[measure.name];
         var measureData1 = datum[measure1.name] || '';
         var measureData2 = datum[measure2.name] || '';
+        var keyCount = 0; // to indicate column order
         pivot.forEach(function(pivot) {
-          tdData.push({type: 'measure', data: measureData[pivot.key], data1: measureData1[pivot.key] || {} ,data2: measureData2[pivot.key] || {} });
+          tdData.push({type: 'measure', column: keyCount ,data: measureData[pivot.key], data1: measureData1[pivot.key] || {} ,data2: measureData2[pivot.key] || {} });
+          keyCount = keyCount + 1; // increment
         });
         return tdData;
       });
@@ -380,12 +440,31 @@ looker.plugins.visualizations.add({
 
     tds.style('background-color', function(d) {
         if ((d.type == 'measure' || d.type == 'table_calculations') && d.data.rendered !== '') {
-            if(settings.colorMeasure == '1'){
-                return colorScale(d.data.value || 0);
+            // console.log(d);
+
+            if(settings.colorFirstColumn == false && d.column == 0){ // check first column setting, leave blank if not enabled
+                return '#f6f8fa';
+            }else if(settings.colorMeasure == '1'){
+                if ((!(colorMinMaxRange[0]==null) && d.data.value < Number(colorMinMaxRange[0]) ) || ( !(colorMinMaxRange[1]==null) && d.data.value > Number(colorMinMaxRange[1]))){
+                  return '#f6f8fa';
+                }
+                else{
+                  return colorScale(d.data.value || 0);
+                }
             }else if(settings.colorMeasure == '2'){
-                return colorScale(d.data1.value || 0);
+                                if ((!(colorMinMaxRange[0]==null) && d.data.value < Number(colorMinMaxRange[0]) ) || ( !(colorMinMaxRange[1]==null) && d.data.value > Number(colorMinMaxRange[1]))){
+                  return '#f6f8fa';
+                }
+                else{
+                  return colorScale(d.data1.value || 0);
+                }
             }else if(settings.colorMeasure == '3'){
-                return colorScale(d.data2.value || 0);
+                                if ((!(colorMinMaxRange[0]==null) && d.data.value < Number(colorMinMaxRange[0]) ) || ( !(colorMinMaxRange[1]==null) && d.data.value > Number(colorMinMaxRange[1]))){
+                  return '#f6f8fa';
+                }
+                else{
+                  return colorScale(d.data2.value || 0);  
+                }
             };
         }
       })
@@ -396,7 +475,7 @@ looker.plugins.visualizations.add({
         } else if (!cellBorders) {
           return '0px solid black';
         } else {
-          return '1px solid black';
+          return '1px solid ' + cellBorderColor;
         }
       })
       .style('vertical-align', verticalAlign)
@@ -440,7 +519,8 @@ looker.plugins.visualizations.add({
               };
               if (d.data2.rendered || '' !== ''){
 
-                 outputHtml = outputHtml.concat('<span style="',colorBottomInput,'width:100%;display:block;color:#2c502a;font-weight:300;">');
+                 outputHtml = outputHtml.concat('<span style="width:100%;display:block;color:#2c502a;font-weight:300;">');
+                 // outputHtml = outputHtml.concat('<span style="',colorBottomInput,'width:100%;display:block;color:#2c502a;font-weight:300;">');
                  // if(addBreak = 1){
                  //     outputHtml = outputHtml.concat('<br/>');
                  // };                 
