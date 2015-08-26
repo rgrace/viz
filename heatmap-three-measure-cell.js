@@ -452,14 +452,14 @@ looker.plugins.visualizations.add({
                   return colorScale(d.data.value || 0);
                 }
             }else if(settings.colorMeasure == '2'){
-                                if ((!(colorMinMaxRange[0]==null) && d.data.value < Number(colorMinMaxRange[0]) ) || ( !(colorMinMaxRange[1]==null) && d.data.value > Number(colorMinMaxRange[1]))){
+                                if ((!(colorMinMaxRange[0]==null) && d.data1.value < Number(colorMinMaxRange[0]) ) || ( !(colorMinMaxRange[1]==null) && d.data1.value > Number(colorMinMaxRange[1]))){
                   return '#f6f8fa';
                 }
                 else{
                   return colorScale(d.data1.value || 0);
                 }
             }else if(settings.colorMeasure == '3'){
-                                if ((!(colorMinMaxRange[0]==null) && d.data.value < Number(colorMinMaxRange[0]) ) || ( !(colorMinMaxRange[1]==null) && d.data.value > Number(colorMinMaxRange[1]))){
+                                if ((!(colorMinMaxRange[0]==null) && d.data2.value < Number(colorMinMaxRange[0]) ) || ( !(colorMinMaxRange[1]==null) && d.data2.value > Number(colorMinMaxRange[1]))){
                   return '#f6f8fa';
                 }
                 else{
