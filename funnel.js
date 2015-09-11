@@ -27,7 +27,7 @@ looker.plugins.visualizations.add({
     },
       textColor: {
       type: 'array',
-      label: 'Text Color (only one',
+      label: 'Text Color (only one)',
       section: 'Style',
       placeholder: '#fff',
       order: 6
