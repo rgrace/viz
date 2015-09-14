@@ -102,7 +102,10 @@ looker.plugins.visualizations.add({
     },
 
   handleErrors: function(data, resp) {
-    if (!resp || !resp.fields) return null;
+    if (!resp || !resp.fields) {
+      return false
+    };
+    console.log(resp.fields);
     if (resp.fields.measures.length != 1 || resp.fields.dimensions.length != 1) {
       this.addError({
         group: 'measure-req',
@@ -128,9 +131,11 @@ looker.plugins.visualizations.add({
       .attr("class", "gauge")
       .attr("width", '90%')
       .attr("height", '90%');
+    console.log("run create");
   },
   update: function(data, element, settings, resp) {
     if (!this.handleErrors(data, resp)) return;
+    console.log("run update");
 
     this.clearErrors('color-error');
     this.clearErrors('bounds-error');
