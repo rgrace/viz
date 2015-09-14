@@ -303,8 +303,7 @@ looker.plugins.visualizations.add({
         // console.log(curr[coloredMeasure][pivot.key].value);
 
         // test min and max, return only values in between
-
-
+   
         if(!(colorMinMaxRange[0]==null) && curr[coloredMeasure][pivot.key].value < Number(colorMinMaxRange[0])){
           return colorMinMaxRange[0];
 
@@ -317,20 +316,21 @@ looker.plugins.visualizations.add({
       });
       return prev.concat(values);
     }, []));
-    // console.log(extents);
-    //they want these to be hidden compeltely
-    //if (!extents[0] && !extents[1]) {
-    //  extents = [0, 0];
-    //}
 
 
+    // over write extents if needed due to request 9/14
+    extents = [Math.max(Number(colorMinMaxRange[1]),extents[1]) , Math.min(Number(colorMinMaxRange[0]),extents[0])];  
     var extentRange = extents[1] - extents[0];
     var extentInterval = extentRange / (colorSettings.length - 1);
     while(extents.length < colorSettings.length) {
       extents.splice(extents.length-1, 0, extents[extents.length-2]  + extentInterval);
     }
+    console.log(extents);
+    console.log(colorSettings);
 
     var colorScale = d3.scale.linear().domain(extents).range(colorSettings);
+
+    console.log(colorScale);
 
     var table = d3.select(element)
       .select('table');
