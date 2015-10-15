@@ -1,7 +1,7 @@
 (function() {
 looker.plugins.visualizations.add({
-  id: 'heatmap',
-  label: 'Heatmap',
+  id: 'heatmap_3',
+  label: 'Heatmap_3',
   options: {
     
     colorPreSet:
@@ -87,6 +87,16 @@ looker.plugins.visualizations.add({
       default: true,
       order: 10
     },    
+
+    equalWidth: {
+      type: "boolean",
+      label: "Equal Width Columns",
+      section: "Data",
+      default: true,
+      order: 11
+    },    
+    // colorBottom:
+
     // colorBottom: {
     //   type: "boolean",
     //   label: "Color Third Measure",
@@ -185,6 +195,8 @@ looker.plugins.visualizations.add({
       .attr('height', '100%');
   },
   update: function(data, element, settings, resp) {
+    var columncount = 1 + resp["pivots"].length || 0;
+    // console.log(columncount);
 
       // var tableOffset = $("#heatmap-table").offset().top;
       // var $header = $("#heatmap-table1 > thead").clone();
@@ -249,6 +261,7 @@ looker.plugins.visualizations.add({
     var colorFirstColumn = settings.colorFirstColumn || false;
     var nullCellBorders = settings.nullCellBorders || false;
     var verticalAlign = settings.verticalAlign || 'top';
+    var equalWidth = settings.equalWidth || false;
 
     // var colorBottomInput = '';
 
@@ -325,12 +338,12 @@ looker.plugins.visualizations.add({
     while(extents.length < colorSettings.length) {
       extents.splice(extents.length-1, 0, extents[extents.length-2]  + extentInterval);
     }
-    console.log(extents);
-    console.log(colorSettings);
+    // console.log(extents);
+    // console.log(colorSettings);
 
     var colorScale = d3.scale.linear().domain(extents).range(colorSettings);
 
-    console.log(colorScale);
+    // console.log(colorScale);
 
     var table = d3.select(element)
       .select('table');
@@ -488,6 +501,16 @@ looker.plugins.visualizations.add({
         }
       })  
 
+      // smart width
+
+        
+      .style('width',function(){
+            if(equalWidth) {
+              return 100/columncount + '%'
+        }
+      })
+        
+      
       .style('text-align', function(d) {
         if (d.type == 'measure') {
           return 'center';
