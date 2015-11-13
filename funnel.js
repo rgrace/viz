@@ -87,14 +87,22 @@ looker.plugins.visualizations.add({
       section: 'Style',
       order: 6,
       default: false
+    } ,
+
+    useMeasures: {
+      type: 'boolean',
+      label: 'Use Measures as piece of funnel',
+      section: 'Style',
+      order: 7,
+      default: false
     }
 
   }
 // end options
   ,
-  handleErrors: function(data, resp) {
+  handleErrors: function(data, resp, settings) {
     if (!resp || !resp.fields) return null;
-    if (resp.fields.dimensions.length != 1) {
+    if (resp.fields.dimensions.length != 1 && !(settings['useMeasures']==true)) {
       this.addError({
         group: 'dimension-req',
         title: 'Incompatible Data',
@@ -114,7 +122,7 @@ looker.plugins.visualizations.add({
     } else {
       this.clearErrors('pivot-req');
     }
-    if (resp.fields.measures.length != 1) {
+    if (resp.fields.measures.length != 1 && !(settings['useMeasures']==true) ) {
       this.addError({
         group: 'measure-req',
         title: 'Incompatible Data',
@@ -152,15 +160,16 @@ looker.plugins.visualizations.add({
     this.create(element,settings,myhash);
     var oldsettings = settings;
 
-    if (!this.handleErrors(data, resp)) return;
+    if (!this.handleErrors(data, resp, settings)) return;
     
-    var dimension = resp.fields.dimensions[0].name;
-    var measure = resp.fields.measures[0].name;
+    if(!(settings['useMeasures']==true)){
+      var dimension = resp.fields.dimensions[0].name || '';
+    }
+    var measure = resp.fields.measures[0].name || '';
     var newdata = [];
 
-    var optionType = 1;
 
-    if (optionType == 1) {
+    if (settings['useMeasures'] == false) {
       for (var i = data.length - 1; i >= 0; i--) {
         newdata[i] = [data[i][dimension].value ,  data[i][measure].value];
       };
@@ -168,7 +177,7 @@ looker.plugins.visualizations.add({
     else {
       for (var i = resp.fields.measures.length - 1; i >= 0; i--) {
         var measure = resp.fields.measures[i].name;
-        newdata[i] = [data[0][dimension].value ,  data[0][measure].value];
+        newdata[i] = [resp.fields.measures[i].label_short ,  data[0][measure].value];
       };
     }
 
@@ -203,6 +212,7 @@ looker.plugins.visualizations.add({
       hoverEffects: settings['hoverEffects'] || false,
       dynamicArea: settings['dynamicArea'] || false,
       showChange: settings['showChange'] || false,
+      useMeasures: settings['useMeasures'] || false,
       minHeight: true,
       animation: true,
       label: {
