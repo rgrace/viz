@@ -72,6 +72,8 @@
       if (!this.handleErrors(data, resp)) return;
 
       var $el = $(element);
+      var $svg = $el.find("svg");
+      $svg.empty(); // Clear any existing chart
 
       // function to extract data
       function mkExtracter(data, names) {
