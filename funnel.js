@@ -87,14 +87,22 @@ looker.plugins.visualizations.add({
       section: 'Style',
       order: 6,
       default: false
+    } ,
+
+    useMeasures: {
+      type: 'boolean',
+      label: 'Use Measures as piece of funnel',
+      section: 'Style',
+      order: 7,
+      default: false
     }
 
   }
 // end options
   ,
-  handleErrors: function(data, resp) {
+  handleErrors: function(data, resp, settings) {
     if (!resp || !resp.fields) return null;
-    if (resp.fields.dimensions.length != 1) {
+    if (resp.fields.dimensions.length != 1 && !(settings['useMeasures']==true)) {
       this.addError({
         group: 'dimension-req',
         title: 'Incompatible Data',
@@ -114,7 +122,7 @@ looker.plugins.visualizations.add({
     } else {
       this.clearErrors('pivot-req');
     }
-    if (resp.fields.measures.length != 1) {
+    if (resp.fields.measures.length != 1 && !(settings['useMeasures']==true) ) {
       this.addError({
         group: 'measure-req',
         title: 'Incompatible Data',
@@ -128,44 +136,57 @@ looker.plugins.visualizations.add({
   },
 
 
-  create: function(element, settings) {
+  create: function(element, settings,myhash) {
 
-      var chart0 = d3.select('#chart').remove();
+      var chart0 = d3.select(element).select('div').remove();
       
 
-      var chart1 = d3.select(element)
+      var chart = d3.select(element)
         .append('div')
         .style('width', settings['newWidth']+'%'||'75%')
         .style('height', '100%')                 
         .style('align', 'center')                 
-        .attr('id', 'chart');
+        .attr('id', myhash);
      /* var chart2 = d3.select(element)
         .append("svg:svg")
         .attr("width", this.width)
         .attr("height", this.height)*/
-      //  console.log("settings");
-    //    console.log(settings);
-      //  console.log(settings["is_curved"]);
     //var config = element;
-      
+    
   },
   update: function(data, element, settings, resp) {
-    this.create(element,settings);
+
+    var myhash = settings.title+settings.id;
+    this.create(element,settings,myhash);
     var oldsettings = settings;
 
-    if (!this.handleErrors(data, resp)) return;
+    if (!this.handleErrors(data, resp, settings)) return;
     
-    var dimension = resp.fields.dimensions[0].name;
-    var measure = resp.fields.measures[0].name;
+    if(!(settings['useMeasures']==true)){
+      var dimension = resp.fields.dimensions[0].name || '';
+    }
+    var measure = resp.fields.measures[0].name || '';
     var newdata = [];
 
-    for (var i = data.length - 1; i >= 0; i--) {
-      newdata[i] = [data[i][dimension].value ,  data[i][measure].value];
-    };
+
+    if (settings['useMeasures'] == false) {
+      for (var i = data.length - 1; i >= 0; i--) {
+        newdata[i] = [data[i][dimension].value ,  data[i][measure].value];
+      };
+    }
+    else {
+      for (var i = resp.fields.measures.length - 1; i >= 0; i--) {
+        var measure = resp.fields.measures[i].name;
+        newdata[i] = [resp.fields.measures[i].label_short ,  data[0][measure].value];
+      };
+    }
+
+
   
       var options = {};
 
-     var chart = new D3Funnel("#chart",settings);
+      selector = "#"+myhash;
+     var chart = new D3Funnel(selector,settings);
     chart.draw(newdata,options);
    
 
@@ -178,7 +199,6 @@ looker.plugins.visualizations.add({
   var D3Funnel = function(selector, settings)
   {
     this.selector = selector;
-
     // Default configuration values
     this.defaults = {
       width: '100%',
@@ -192,6 +212,7 @@ looker.plugins.visualizations.add({
       hoverEffects: settings['hoverEffects'] || false,
       dynamicArea: settings['dynamicArea'] || false,
       showChange: settings['showChange'] || false,
+      useMeasures: settings['useMeasures'] || false,
       minHeight: true,
       animation: true,
       label: {
@@ -233,10 +254,9 @@ D3Funnel.prototype.__isArray = function(value)
     this.__initialize(data, options);
 
     // Remove any previous drawings
-    d3.select(this.selector).selectAll("svg").remove();
+    // d3.select(this.selector).selectAll("svg").remove();
 
       
-
     // Add the SVG and group element
     this.svg = d3.select(this.selector)
       .append("svg")
@@ -502,10 +522,6 @@ D3Funnel.prototype.__isArray = function(value)
     // Prepare the configuration settings based on the defaults
     // Set the default width and height based on the container
     var settings = this.__extend({}, this.defaults, this.settings);
-    // console.log("settings_extended");
-    // // console.log(settings);
-    // console.log(this.options);
-    // console.log(this.defaults);
 
     if (this.defaults['colorType'] == true) 
     {
