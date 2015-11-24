@@ -4,8 +4,8 @@
 
 (function() {
 looker.plugins.visualizations.add({
-  id: 'funnel',
-  label: 'Funnel'
+  id: 'funnel_new',
+  label: 'Funnel (new)'
    ,
   options: {
     newWidth: {
@@ -70,31 +70,23 @@ looker.plugins.visualizations.add({
       label: 'Dynamic Area',
       section: 'Style',
       order: 4,
+      default: false
+    }    , 
+
+    showChange: {
+      type: 'boolean',
+      label: 'Show Values as Percentage (%)',
+      section: 'Style',
+      order: 6,
       default: true
-    }    , 
-
-    showChange: {
-      type: 'boolean',
-      label: 'Show Conversion Rate',
-      section: 'Style',
-      order: 6,
-      default: false
-    }    , 
-
-    showChange: {
-      type: 'boolean',
-      label: 'Show Conversion Rate',
-      section: 'Style',
-      order: 6,
-      default: false
-    } ,
+    }    ,
 
     useMeasures: {
       type: 'boolean',
       label: 'Use Measures as piece of funnel',
       section: 'Style',
       order: 7,
-      default: false
+      default: true
     }
 
   }
@@ -465,10 +457,12 @@ D3Funnel.prototype.__isArray = function(value)
     var paths = this.sectionPaths[index];
     var textStr = this.data[i][0] + ": " + this.data[i][1].toLocaleString() ;
     
-    if (i>0 && this.showChange) {
-      var percConverted = parseInt(100*((this.data[i][1]) / this.data[i-1][1]));
+    if (i>=0 && this.showChange) {
+      //var percConverted = parseInt(100*((this.data[i][1]) / this.data[i-1][1]));
       // console.log(percConverted*100);
-      textStr = textStr + " (" + percConverted.toLocaleString() + "%)";
+      //textStr = textStr + " (" + percConverted.toLocaleString() + "%)";	  
+	  var percConverted = parseInt(100*(this.data[i][1]));
+      textStr = percConverted.toLocaleString() + "%";
     }
     
    // console.log(textStr)
@@ -893,4 +887,3 @@ D3Funnel.prototype.__isArray = function(value)
 
 
 }());
-
