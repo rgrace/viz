@@ -1,7 +1,7 @@
 (function() {
 looker.plugins.visualizations.add({
-  id: 'heatmapjs1',
-  label: 'Heatmapjs1',
+  id: 'heatmap',
+  label: 'Heatmap',
   options: {
     
     colorPreSet:
@@ -246,9 +246,7 @@ looker.plugins.visualizations.add({
     };
 
     var colorMinMaxRange = [settings.colorMinRange || null , settings.colorMaxRange || null ];
-      // console.log(colorMinMaxRange);
     var gradientMeasure = settings.colorMeasure || 1;
-
     var headText = settings.headText || '#000000';
     var headerPrefix = settings.headPrefix || '';
     var headBackground = settings.headBackground || '#CCD8E4';
@@ -316,11 +314,16 @@ looker.plugins.visualizations.add({
         // console.log(curr[coloredMeasure][pivot.key].value);
 
         // test min and max, return only values in between
-   
-        if(!(colorMinMaxRange[0]==null) && curr[coloredMeasure][pivot.key].value < Number(colorMinMaxRange[0])){
+        if(pivot.is_total){ // ignore totals
+          return null;
+
+        }
+        // Below Min
+        else if(!(colorMinMaxRange[0]==null) && curr[coloredMeasure][pivot.key].value < Number(colorMinMaxRange[0])){
           return colorMinMaxRange[0];
 
         }
+        // Above Max
         else if(!(colorMinMaxRange[1]==null) && curr[coloredMeasure][pivot.key].value > Number(colorMinMaxRange[1])){
           return colorMinMaxRange[1]
         }
@@ -432,7 +435,7 @@ looker.plugins.visualizations.add({
 
     trs.exit()
       .remove();
-
+    
     var tds = trs.selectAll('td')
       .data(function(datum) {
         var tdData = [];
@@ -455,11 +458,12 @@ looker.plugins.visualizations.add({
 
     tds.style('background-color', function(d) {
         if ((d.type == 'measure' || d.type == 'table_calculations') && d.data.rendered !== '') {
-            console.log(d);
 
             if(settings.colorFirstColumn == false && d.column == 0){ // check first column setting, leave blank if not enabled
                 return '#f6f8fa';
-            }else if(d.is_total){
+            }
+            // ignore row totals
+            else if(pivot[d.column].is_total){
                 return '#f6f8fa';
              }else if(settings.colorMeasure == '1'){
                 if ((!(colorMinMaxRange[0]==null) && d.data.value < Number(colorMinMaxRange[0]) ) || ( !(colorMinMaxRange[1]==null) && d.data.value > Number(colorMinMaxRange[1]))){
