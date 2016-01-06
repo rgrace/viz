@@ -95,6 +95,16 @@ looker.plugins.visualizations.add({
       default: true,
       order: 11
     },    
+
+
+    // ADD a toggle to color extremes or not
+    colorExtremes: {
+      type: "boolean",
+      label: "Color Extremes",
+      section: "Data",
+      default: true,
+      order: 3.1
+    },    
     // colorBottom:
 
     // colorBottom: {
@@ -260,6 +270,8 @@ looker.plugins.visualizations.add({
     var nullCellBorders = settings.nullCellBorders || false;
     var verticalAlign = settings.verticalAlign || 'top';
     var equalWidth = settings.equalWidth || false;
+
+    var colorExtremes = settings.colorExtremes || false;
 
     // var colorBottomInput = '';
 
@@ -466,12 +478,27 @@ looker.plugins.visualizations.add({
             else if(pivot[d.column].is_total){
                 return '#f6f8fa';
              }else if(settings.colorMeasure == '1'){
-                if ((!(colorMinMaxRange[0]==null) && d.data.value < Number(colorMinMaxRange[0]) ) || ( !(colorMinMaxRange[1]==null) && d.data.value > Number(colorMinMaxRange[1]))){
-                  return '#f6f8fa';
-                }
+                if ((!(colorMinMaxRange[0]==null) && d.data.value < Number(colorMinMaxRange[0]) ) || ( !(colorMinMaxRange[1]==null) && d.data.value > Number(colorMinMaxRange[1])) ){ 
+                  
+                  if (colorExtremes){
+                    if (d.data.value < Number(colorMinMaxRange[0])){
+                      return colorScale(colorMinMaxRange[0]||0);
+                    }
+                    else if (d.data.value > Number(colorMinMaxRange[1])){
+                      return colorScale(colorMinMaxRange[1]||0);
+                    }
+                    else{
+                    return '#f6f8fa';
+                     }
+                  }
+                  else{
+                    return '#f6f8fa';
+                  }
+                                  }
                 else{
                   return colorScale(d.data.value || 0);
                 }
+
             }else if(settings.colorMeasure == '2'){
                                 if ((!(colorMinMaxRange[0]==null) && d.data1.value < Number(colorMinMaxRange[0]) ) || ( !(colorMinMaxRange[1]==null) && d.data1.value > Number(colorMinMaxRange[1]))){
                   return '#f6f8fa';
