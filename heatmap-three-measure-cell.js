@@ -1,7 +1,7 @@
 (function() {
 looker.plugins.visualizations.add({
-  id: 'heatmap',
-  label: 'Heatmap',
+  id: 'heatmap-1',
+  label: 'Heatmap-1',
   options: {
     
     colorPreSet:
@@ -500,18 +500,44 @@ looker.plugins.visualizations.add({
                 }
 
             }else if(settings.colorMeasure == '2'){
-                                if ((!(colorMinMaxRange[0]==null) && d.data1.value < Number(colorMinMaxRange[0]) ) || ( !(colorMinMaxRange[1]==null) && d.data1.value > Number(colorMinMaxRange[1]))){
-                  return '#f6f8fa';
-                }
+               if ((!(colorMinMaxRange[0]==null) && d.data1.value < Number(colorMinMaxRange[0]) ) || ( !(colorMinMaxRange[1]==null) && d.data1.value > Number(colorMinMaxRange[1]))){
+                  if (colorExtremes){
+                    if (d.data1.value < Number(colorMinMaxRange[0])){
+                      return colorScale(colorMinMaxRange[0]||0);
+                    }
+                    else if (d.data1.value > Number(colorMinMaxRange[1])){
+                      return colorScale(colorMinMaxRange[1]||0);
+                    }
+                    else{
+                    return '#f6f8fa';
+                     }
+                  }
+                  else{
+                    return '#f6f8fa';
+                  }
+                                  }
                 else{
                   return colorScale(d.data1.value || 0);
                 }
             }else if(settings.colorMeasure == '3'){
-                                if ((!(colorMinMaxRange[0]==null) && d.data2.value < Number(colorMinMaxRange[0]) ) || ( !(colorMinMaxRange[1]==null) && d.data2.value > Number(colorMinMaxRange[1]))){
-                  return '#f6f8fa';
-                }
+             if ((!(colorMinMaxRange[0]==null) && d.data2.value < Number(colorMinMaxRange[0]) ) || ( !(colorMinMaxRange[1]==null) && d.data2.value > Number(colorMinMaxRange[1]))){
+                 if (colorExtremes){
+                    if (d.data2.value < Number(colorMinMaxRange[0])){
+                      return colorScale(colorMinMaxRange[0]||0);
+                    }
+                    else if (d.data2.value > Number(colorMinMaxRange[1])){
+                      return colorScale(colorMinMaxRange[1]||0);
+                    }
+                    else{
+                    return '#f6f8fa';
+                     }
+                  }
+                  else{
+                    return '#f6f8fa';
+                  }
+                                  }
                 else{
-                  return colorScale(d.data2.value || 0);  
+                  return colorScale(d.data2.value || 0);
                 }
             };
         }
