@@ -20,7 +20,8 @@ looker.plugins.visualizations.add({
   //   //start options
       colorRange: {
       type: 'array',
-      label: 'Color Ranges (array)',
+      label: 'Color',
+      display: 'colors',
       section: 'Style',
       placeholder: '#fff, red, etc...',
       order: 7
