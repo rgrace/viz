@@ -1,7 +1,7 @@
 (function() {
 looker.plugins.visualizations.add({
-  id: 'heatmap-1',
-  label: 'Heatmap-1',
+  id: 'heatmap',
+  label: 'Heatmap',
   options: {
     
     colorPreSet:
