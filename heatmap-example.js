@@ -174,7 +174,7 @@
 //           }
 //         })
 //         .html(function(d) {
-//           return d.data.html || d.data.rendered || '∅';
+//           return d.data.html || d.data.rendered || d.data.value || '∅';
 //         })
 //         .on('click', function(d) {
 //           d3.event.preventDefault();
