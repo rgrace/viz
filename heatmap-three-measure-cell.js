@@ -587,7 +587,7 @@ looker.plugins.visualizations.add({
 
               if (d.data.rendered || '' !== ''){
                  outputHtml = outputHtml.concat('<span style="color:#2c502a;font-weight:900;">');
-                 outputHtml = outputHtml.concat(d.data.rendered || '' );
+                 outputHtml = outputHtml.concat(d.data.rendered ||d.data.rendered || '' );
                  outputHtml = outputHtml.concat('</span>');
                  addBreak = 1
               };
@@ -614,7 +614,7 @@ looker.plugins.visualizations.add({
               return outputHtml
             }
               else{
-              return '<span style="color:#2c502a;font-weight:900">'+(d.data.rendered || '')
+              return '<span style="color:#2c502a;font-weight:900">'+(d.data.rendered ||d.data.value || '')
                }
       })
       .on('click', function(d) {

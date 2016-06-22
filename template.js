@@ -14,7 +14,7 @@ looker.plugins.visualizations.add({
 
   // ---------------------------------------------------------------------------------------------------------------------------
   //
-  //  Here you list all your options to appear in teh edit window:
+  //  Here you list all your options to appear in the edit window:
   //      type: array, string, boolean, 
   //      label: Label
   //      section: creates a new tab
@@ -49,12 +49,12 @@ looker.plugins.visualizations.add({
     // insert IF statements that return false when not met
 
     var min_mes, max_mes, min_dim, max_dim, min_piv, max_piv;
-    min_mes = 1
-    max_mes = 1
-    min_dim = 1
-    max_dim = 1
+    min_mes = 0
+    max_mes = 10
+    min_dim = 0
+    max_dim = 10
     min_piv = 0
-    max_piv = 0
+    max_piv = 10
 
     if (resp.fields.pivots.length > max_piv) {
       this.addError({
@@ -78,7 +78,7 @@ looker.plugins.visualizations.add({
       this.clearErrors('pivot-req');
     }
 
-    if (resp.fields.dimensions.length > min_dim) {
+    if (resp.fields.dimensions.length > max_dim) {
       this.addError({
         group: 'dim-req',
         title: 'Incompatible Data',
@@ -89,7 +89,7 @@ looker.plugins.visualizations.add({
       this.clearErrors('dim-req');
     }
 
-    if (resp.fields.dimensions.length < max_dim) {
+    if (resp.fields.dimensions.length < min_dim) {
       this.addError({
         group: 'dim-req',
         title: 'Incompatible Data',
@@ -141,8 +141,9 @@ looker.plugins.visualizations.add({
 
 
 
-
+  // clear it
     d3.select(element);
+      .selectAll("*").remove();
         // .append("svg");  
 
 
@@ -178,6 +179,10 @@ looker.plugins.visualizations.add({
     // console.log(resp.fields.measures[0].name);
 
 // Declare any variables
+
+// // Height and Width
+      // h = $(element).height();
+      // w = $(element).width();
 
 
         }
