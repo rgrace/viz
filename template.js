@@ -100,7 +100,7 @@ looker.plugins.visualizations.add({
       this.clearErrors('dim-req');
     }
 
-    if (resp.fields.measures.length > max_mes) {
+    if (resp.fields.pivots.length > max_mes) {
       this.addError({
         group: 'mes-req',
         title: 'Incompatible Data',
@@ -111,7 +111,7 @@ looker.plugins.visualizations.add({
       this.clearErrors('mes-req');
     }
 
-    if (resp.fields.measures.length < min_mes) {
+    if (resp.fields.pivots.length < min_mes) {
       this.addError({
         group: 'mes-req',
         title: 'Incompatible Data',
