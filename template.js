@@ -146,11 +146,13 @@ looker.plugins.visualizations.add({
       .selectAll("*").remove();
         // .append("svg");  
 
+      // Add stuff to your element
 
-        // Add stuff to your element
-
-
-
+    d3.select(element)
+        .append("svg")
+        .attr("id", "unique_id_for_svg")
+        .attr('width', '100%')
+        .attr('height', '100%') ; // Additional attributes can be added below
 
 
         },
