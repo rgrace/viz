@@ -58,7 +58,7 @@ looker.plugins.visualizations.add({
     if (!this.handleErrors(data, resp)) return;
 
     this.clearErrors('color-error');
-    var colorSettings = settings.colorRange || ['white', 'purple', 'red'];
+    var colorSettings = settings.colorRange && settings.colorRange.length ? settings.colorRange : ['white', 'purple', 'red'];
 
     if (colorSettings.length <= 1) {
       this.addError({
