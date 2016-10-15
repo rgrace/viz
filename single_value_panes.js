@@ -25,14 +25,15 @@ looker.plugins.visualizations.add({
       "default": 'medium',
       label: "Font Size",
       order: 0
-    }
+    },
     // Add a 
     // },
-    // value_format: {
-    //   type: 'string',
-    //   placeholder: "Spreadsheet-style format code",
-    //   label: "Value Format"
-    // }
+    font: {
+      type: 'string',
+      placeholder: "Verdana",
+      "default": "verdana",
+      label: "Font"
+    }
   },
   handleErrors: function (data, resp) {
 
@@ -75,13 +76,14 @@ looker.plugins.visualizations.add({
   } else {
     font_size = '6em';
   }
+  var font = settings['font'] || 'Verdana'
 
 //value
   console.log(data[rec][resp.fields.measures[0].name].rendered);
   var visData = data[rec][resp.fields.measures[0].name].rendered;
 // category or dimension
-  console.log(data[rec][resp.fields.dimensions[0].name].rendered);
-  var visCat = data[rec][resp.fields.dimensions[0].name].rendered;
+  console.log(data[rec][resp.fields.dimensions[0].name].rendered || data[rec][resp.fields.dimensions[0].name].value);
+  var visCat = data[rec][resp.fields.dimensions[0].name].rendered || data[rec][resp.fields.dimensions[0].name].value;
   var data_length = data.length;
   var visPage = (rec+1) + ' of ' +  data.length;
 
@@ -94,7 +96,10 @@ looker.plugins.visualizations.add({
       .append('span')
       .attr('id','visValue')
       .style('font-size', font_size)
-      .text(visData)
+      .style('font-family', font)
+      .text(visData);
+
+  console.log(font);
 
 
   pane = d3.select(element)

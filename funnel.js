@@ -382,6 +382,7 @@ D3Funnel.prototype.__isArray = function(value)
   D3Funnel.prototype.__addBeforeTransition = function(path, index)
   {
     var paths = this.sectionPaths[index];
+    console.log(paths);
 
     var beforePath = "";
     var beforeFill = "";
