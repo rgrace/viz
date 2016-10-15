@@ -391,18 +391,18 @@ D3Funnel.prototype.__isArray = function(value)
     // console.log(this.isCurved);
     if(path){
         if (!this.isCurved) {
-        beforePath = "M" + paths[0][0] + "," + paths[0][1] +
-          " L" + paths[1][0] + "," + paths[1][1] +
-          " L" + paths[1][0] + "," + paths[1][1] +
-          " L" + paths[0][0] + "," + paths[0][1];
+        beforePath = "M" + paths[0][0]||0 + "," + paths[0][1]||0 +
+          " L" + paths[1][0]||0 + "," + paths[1][1]||0 +
+          " L" + paths[1][0]||0 + "," + paths[1][1]||0 +
+          " L" + paths[0][0]||0 + "," + paths[0][1]||0;
       } else {
-        beforePath = "M" + paths[0][0] + "," + paths[0][1] +
-          " Q" + paths[1][0] + "," + paths[1][1] +
-          " " + paths[2][0] + "," + paths[2][1] +
-          " L" + paths[2][0] + "," + paths[2][1] +
-          " M" + paths[2][0] + "," + paths[2][1] +
-          " Q" + paths[1][0] + "," + paths[1][1] +
-          " " + paths[0][0] + "," + paths[0][1];
+        beforePath = "M" + paths[0][0]||0 + "," + paths[0][1]||0 +
+          " Q" + paths[1][0]||0 + "," + paths[1][1]||0 +
+          " " + paths[2][0]||0 + "," + paths[2][1]||0 +
+          " L" + paths[2][0]||0 + "," + paths[2][1]||0 +
+          " M" + paths[2][0]||0 + "," + paths[2][1]||0 +
+          " Q" + paths[1][0]||0 + "," + paths[1][1]||0 +
+          " " + paths[0][0]||0 + "," + paths[0][1]||0;
       }
     }
     // Use previous fill color, if available
