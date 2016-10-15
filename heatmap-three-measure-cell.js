@@ -1,7 +1,7 @@
 (function() {
 looker.plugins.visualizations.add({
-  id: 'heatmap',
-  label: 'Heatmap-3-measure',
+  id: 'heatmap-3-measure',
+  label: 'Heatmap (Three Measures)',
   options: {
     
     colorPreSet:
