@@ -77,11 +77,9 @@ looker.plugins.visualizations.add({
   }
 
 //value
-  console.log(data[rec][resp.fields.measures[0].name].rendered);
-  var visData = data[rec][resp.fields.measures[0].name].rendered;
+  var visData = data[rec][resp.fields.measures[0].name].rendered || data[rec][resp.fields.measures[0].name].value;
 // category or dimension
-  console.log(data[rec][resp.fields.dimensions[0].name].rendered);
-  var visCat = data[rec][resp.fields.dimensions[0].name].rendered;
+  var visCat = data[rec][resp.fields.dimensions[0].name].rendered || data[rec][resp.fields.dimensions[0].name].value;
   var data_length = data.length;
   var visPage = (rec+1) + ' of ' +  data.length;
 
@@ -110,13 +108,16 @@ if(rec>0){
         .style('display', 'inline-block')
         .append('button')
         .attr('id','leftButton')
+
+        .attr('padding-left','10')
+        .attr('padding-right','10')
         .text('<<');
 
       // on click, increment one
 
     document.getElementById('leftButton').addEventListener('click', function() {
       curr_rec--;
-      console.log(curr_rec);
+      // console.log(curr_rec);
       loadData(curr_rec);
 
   }, false);
@@ -149,13 +150,15 @@ if(data_length-rec-1>0){
       .style('display', 'inline-block')
       .append('button')
       .attr('id','rightButton')
+        .attr('padding-left','10')
+        .attr('padding-right','10')
       .text('>>');
 
       // on click, increment one
 
   document.getElementById('rightButton').addEventListener('click', function() {
     curr_rec++;
-    console.log(curr_rec);
+    // console.log(curr_rec);
     loadData(curr_rec);
 }, false);
 
