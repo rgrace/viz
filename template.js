@@ -143,7 +143,7 @@ looker.plugins.visualizations.add({
 
 
   // clear it
-    d3.select(element);
+    d3.select(element)
       .selectAll("*").remove();
         // .append("svg");  
 
