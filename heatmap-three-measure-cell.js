@@ -1,7 +1,7 @@
 (function() {
 looker.plugins.visualizations.add({
   id: 'heatmap',
-  label: 'Heatmap',
+  label: 'Heatmap-3-measure',
   options: {
     
     colorPreSet:
@@ -614,7 +614,7 @@ looker.plugins.visualizations.add({
               return outputHtml
             }
               else{
-              return '<span style="color:#2c502a;font-weight:900">'+(d.data.rendered ||d.data.value || '')
+              return '<span style="color:#2c502a;align:right;font-weight:900">'+(d.data.rendered ||d.data.value || '')
                }
       })
       .on('click', function(d) {
