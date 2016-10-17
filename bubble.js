@@ -234,7 +234,7 @@
            .attr("x", width/2)
            .attr("y", height - 10)
            .style({ 'fill': 'black', 'font-size':'12px'})
-           .text(dimension.name.split(".")[0].toUpperCase() + ' ' + capitalizeFirstLetter(dimension.name.split(".")[1]));
+           .text(dimension.label);
 
       // create Y-axis label
       chart.append("text")
@@ -245,7 +245,7 @@
            .attr("transform", "rotate(-90)")
            .style({ 'fill': 'purple', 'font-size':'12px'})
            .style("opacity", .4)
-           .text(measure_1.name.split(".")[0].toUpperCase() + ' ' + capitalizeFirstLetter(measure_1.name.split(".")[1]));             
+           .text(measure_1.label);             
 
     }
   };
