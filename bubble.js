@@ -11,7 +11,7 @@
     .attr('class', 'looker-chart-tooltip')
     .offset([-10, 0])
     .html(function(data) {
-      return "<strong>" + data.measure2.label +
+      return "<strong>" + data.measure2.label + ": "
         + "</strong> <span style=''>" + data.z + "</span>";
     });
 
@@ -150,8 +150,8 @@
                      .nice();
 
       var rScale = d3.scale.linear()
-                     .domain(d3.extent(y))
-                      .range(10, 75)
+                      .domain([d3.min(z), d3.max(z)])
+                      .range([10, 35]);
                       .nice();
 
       // create x,y axes
@@ -169,7 +169,7 @@
 
       // draw circles
       var circles = chart.selectAll("circle")
-        .data(data_zip)
+        .data(data_zip);
 
       circles.enter()
         .append("circle");
@@ -213,7 +213,7 @@
       }
 
       xAxisNodeSelection.attr("transform", "translate(0," + (height - padding) + ")")
-        .style({ 'stroke': 'Black', 'fill': 'none', 'stroke-width': '1px'})
+        .style({ 'stroke': 'Black', 'fill': 'none', 'stroke-width': '.5px'})
         .call(xAxis); 
 
       // create Y axis
