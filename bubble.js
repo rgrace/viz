@@ -150,9 +150,9 @@
                      .nice();
 
       var rScale = d3.scale.linear()
-                      .domain([d3.min(z), d3.max(z)])
-                      .range([10, 35]);
-                      .nice();
+                     .domain([d3.min(z), d3.max(z)])
+                     .range([10, 35])
+                     .nice();
 
       // create x,y axes
       var xAxis = d3.svg.axis()
