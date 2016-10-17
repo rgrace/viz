@@ -11,8 +11,8 @@
     .attr('class', 'looker-chart-tooltip')
     .offset([-10, 0])
     .html(function(data) {
-      return "<strong>" + data.measure2.name.split(".")[0].toUpperCase() + ' ' + capitalizeFirstLetter(data.measure2.name.split(".")[1]) 
-        + "</strong> <span style='color:red'>" + data.z + "</span>";
+      return "<strong>" + data.measure2.label +
+        + "</strong> <span style=''>" + data.z + "</span>";
     });
 
   var viz = {
@@ -28,7 +28,7 @@
     },
     handleErrors: function(data, resp) {
       if (!resp || !resp.fields) return null;
-      if (resp.fields.dimensions.length != 1) {
+      if (resp.fields.dimension_like.length != 1) {
         this.addError({
           group: 'dimension-req',
           title: 'Incompatible Data',
@@ -38,7 +38,7 @@
       } else {
         this.clearErrors('dimension-req');
       }
-      if (resp.fields.measures.length != 2) {
+      if (resp.fields.measure_like.length != 2) {
         this.addError({
           group: 'measure-req',
           title: 'Incompatible Data',
@@ -53,6 +53,13 @@
 
     create: function(element, settings) {
       
+    },
+
+    update: function(data, element, settings, resp) {   
+      if (!this.handleErrors(data, resp)) return;
+
+      $(element).html("")
+
       // create SVG element
       var chart = d3.select(element)
         .append('svg')
@@ -62,10 +69,7 @@
       
       // invoke tooltip
       chart.call(tip);
-    },
 
-    update: function(data, element, settings, resp) {   
-      if (!this.handleErrors(data, resp)) return;
 
       var $el = $(element);
 
@@ -107,9 +111,9 @@
       //  get meta data for labels, etc.
       var extractData = mkExtracter(data);
       var extractDrill = drillExtracter(data);
-      var dimension = resp.fields.dimensions[0];    // meta data for dimension
-      var measure_1 = resp.fields.measures[0];      // meta data for first measure
-      var measure_2 = resp.fields.measures[1];      // meta data for second measure
+      var dimension = resp.fields.dimension_like[0];    // meta data for dimension
+      var measure_1 = resp.fields.measure_like[0];      // meta data for first measure
+      var measure_2 = resp.fields.measure_like[1];      // meta data for second measure
       var measure_2_drill = extractDrill(measure_2.name)
 
 
@@ -137,13 +141,18 @@
                      .domain(x)
                      .rangePoints([padding, width - padding * 2]);
 
+      var extentY = d3.extent(y);
+      extentY[0] = 0;
+
       var yScale = d3.scale.linear()
-                     .domain([d3.min(y) - 5, d3.max(y) + 5])
-                     .range([height - padding, padding]);
+                     .domain(extentY)
+                     .range([height - padding, padding])
+                     .nice();
 
       var rScale = d3.scale.linear()
-                      .domain([d3.min(z), d3.max(z)])
-                      .range([1, z.length/2]);
+                     .domain(d3.extent(y))
+                      .range(10, 75)
+                      .nice();
 
       // create x,y axes
       var xAxis = d3.svg.axis()
