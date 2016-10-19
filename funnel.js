@@ -390,7 +390,8 @@ D3Funnel.prototype.__isArray = function(value)
     // Construct the top of the trapezoid and leave the other elements
     // hovering around to expand downward on animation
     // console.log(this.isCurved);
-    if (!this.isCurved) {
+    if (paths){
+      if (!this.isCurved) {
       beforePath = "M" + paths[0][0] + "," + paths[0][1] +
         " L" + paths[1][0] + "," + paths[1][1] +
         " L" + paths[1][0] + "," + paths[1][1] +
@@ -404,6 +405,8 @@ D3Funnel.prototype.__isArray = function(value)
         " Q" + paths[1][0] + "," + paths[1][1] +
         " " + paths[0][0] + "," + paths[0][1];
     }
+    }
+    
     // Use previous fill color, if available
     if (this.fillType === "solid") {
       beforeFill = index > 0 ? this.__getColor(index - 1) : this.__getColor(index);

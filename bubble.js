@@ -11,8 +11,9 @@
     .attr('class', 'looker-chart-tooltip')
     .offset([-10, 0])
     .html(function(data) {
-      return "<strong>" + data.measure2.name.split(".")[0].toUpperCase() + ' ' + capitalizeFirstLetter(data.measure2.name.split(".")[1]) 
-        + "</strong> <span style='color:red'>" + data.z + "</span>";
+      return "<strong>" + data.dimension.name.split(".")[0].toUpperCase() + ' ' + capitalizeFirstLetter(data.dimension.name.split(".")[1]) 
+        + "</strong> <span style='color:red'>" + data.n + "</span>";
+       
     });
 
   var viz = {
@@ -24,6 +25,14 @@
         label: 'Color Ranges',
         section: 'Style',
         placeholder: '#fff'
+      }
+      ,
+      size: {
+        type: 'array',
+        label: 'Size Multiplier',
+        section: 'Style',
+        default: '1',
+        placeholder: '1'
       }
     },
     handleErrors: function(data, resp) {
@@ -38,7 +47,7 @@
       } else {
         this.clearErrors('dimension-req');
       }
-      if (resp.fields.measures.length != 2) {
+      if (resp.fields.measures.length < 2) {
         this.addError({
           group: 'measure-req',
           title: 'Incompatible Data',
@@ -54,6 +63,7 @@
     create: function(element, settings) {
       
       // create SVG element
+      var chart = d3.select(element).empty();
       var chart = d3.select(element)
         .append('svg')
         .attr('width', '100%')
@@ -66,6 +76,8 @@
 
     update: function(data, element, settings, resp) {   
       if (!this.handleErrors(data, resp)) return;
+
+      console.log(resp);
 
       var $el = $(element);
 
@@ -111,43 +123,71 @@
       var measure_1 = resp.fields.measures[0];      // meta data for first measure
       var measure_2 = resp.fields.measures[1];      // meta data for second measure
       var measure_2_drill = extractDrill(measure_2.name)
+      var measure_3 = resp.fields.measures[2] || measure_1;      // meta data for second measure
+      var measure_4 = resp.fields.measures[3] || measure_1;      // meta data for second measure
+
+      var xlabel = measure_1.label;
+      var ylabel = measure_2.label;
 
 
       // get arrays of data
-      var x = extractData(dimension.name)
-      var y = extractData(measure_1.name)
-      var z = extractData(measure_2.name)
+      var n = extractData(dimension.name)
+      var x = extractData(measure_1.name)
+      var y = extractData(measure_2.name)
+      var z = extractData(measure_3.name)
+      var c = extractData(measure_4.name)
 
       // iterate over data
       var data_zip = [];
       x.forEach(function(_, i){
         data_zip.push({
-          x:x[i], y:y[i], z:z[i], drill:measure_2_drill[i]
+          x:x[i], y:y[i], z:z[i], c:c[i], n:n[i], drill:measure_2_drill[i]
         })
       });
 
       // define margin height and width
-      var margin = {top: 10, right: 10, bottom: 10, left: 10};   
+      var margin = {top: 10, right: 10, bottom: 10, left: 20};   
       var width = $el.width() - margin.left - margin.right;
       var height = $el.height() - margin.top - margin.bottom;
       var padding = 60;
       
-      // create x,y,r scales
-      var xScale = d3.scale.ordinal()
-                     .domain(x)
-                     .rangePoints([padding, width - padding * 2]);
+      var xmin = d3.min(x);
+      var ymin = d3.min(y);
+      if(xmin > 0){
+        xmin = 0;
+      }
+      if(ymin > 0){
+        ymin = 0;
+      }
+
+
+      console.log(x);
+      // console.log('xmin', xmin);
+      var xScale = d3.scale.linear()
+                     .domain([xmin, d3.max(x)])
+                     .range([ padding, width - padding]);
+                     // .rangePoints([padding, width - padding * 2]);
 
       var yScale = d3.scale.linear()
-                     .domain([d3.min(y) - 5, d3.max(y) + 5])
+                     .domain([ymin - 5, d3.max(y) + 5])
                      .range([height - padding, padding]);
 
       var rScale = d3.scale.linear()
                       .domain([d3.min(z), d3.max(z)])
                       .range([1, z.length/2]);
 
+      var range = settings['colorRange'] || ['green', 'red'];
+      var cScale = d3.scale.category10().domain([d3.min(c), d3.max(c)]);
+      if (settings['colorRange']){
+        cScale = d3.scale.linear().domain([d3.min(c), d3.max(c)]).range(range);
+      }
+      
+      // console.log([d3.min(c), d3.max(c)]);
+
       // create x,y axes
       var xAxis = d3.svg.axis()
                     .scale(xScale)
+                    .tickSize(1)
                     .orient('bottom');
 
       var yAxis = d3.svg.axis()
@@ -166,25 +206,28 @@
         .append("circle");
 
       circles.attr("cx", function(x) {
-          return xScale(x.x);
+          console.log(x);
+          return xScale(x.x)||1 + padding;
         })
         .attr("cy", function(x) {
           return yScale(x.y);
         })
         .attr("r", function(x) {
-          return rScale(x.z);
+          return rScale(x.z)*settings['size']||1.0;
         })
-        .style("opacity", .2)
-        .attr("fill", "purple")
+        .attr("fill", function(x) {
+          return cScale(x.c);
+        })
+        .style("opacity", .5)
         .style("stroke", "black")
         .on("mouseover", function(data) {
-                      d3.select(this).attr("r", rScale(data.z) * 1.1);
-                      data.measure2 = measure_2;
+                      d3.select(this).attr("r", 1.2*rScale(data.z) *settings['size']||1.0);
+                      data.dimension = dimension;
                       tip.show(data);
                     })                  
         .on("mouseout", function(data) {
-          d3.select(this).attr("r", rScale(data.z));
-          data.measure2 = measure_2;
+          d3.select(this).attr("r", rScale(data.z) *settings['size']||1.0);
+          data.dimension = dimension;
           tip.hide(data);
         })
       .on('click', function(data) {
@@ -203,8 +246,9 @@
           .attr("class", "x axis");
       }
 
-      xAxisNodeSelection.attr("transform", "translate(0," + (height - padding) + ")")
+      xAxisNodeSelection.attr("transform", "translate("+margin.left+"," + (height - padding) + ")")
         .style({ 'stroke': 'Black', 'fill': 'none', 'stroke-width': '1px'})
+        .attr('transform', 'translate(0, ' + yScale(0) + ')')
         .call(xAxis); 
 
       // create Y axis
@@ -214,29 +258,34 @@
           .attr("class", "y axis");
       }
       
-      yAxisNodeSelection.attr("transform", "translate(" + padding + ",0)")
+      yAxisNodeSelection.attr("transform", "translate(" + padding + margin.left + ",0)")
         .style({ 'stroke': 'Black', 'fill': 'none', 'stroke-width': '1px'})
-        .call(yAxis);       
-
+        .attr('transform', 'translate( ' +  xScale(0) + ',0)')
+        .call(yAxis);
+      
+      d3.selectAll('text.xlabel').remove();
+      d3.selectAll('text.ylabel').remove();
       // create X-axis label
       chart.append("text")
-           .attr("class", "x label")
+           .attr("class", "xlabel")
            .attr("text-anchor", "middle")
            .attr("x", width/2)
            .attr("y", height - 10)
            .style({ 'fill': 'black', 'font-size':'12px'})
-           .text(dimension.name.split(".")[0].toUpperCase() + ' ' + capitalizeFirstLetter(dimension.name.split(".")[1]));
+           .text(xlabel);
+           // .text(measure_1.name.split(".")[0].toUpperCase() + ' ' + capitalizeFirstLetter(measure_1.name.split(".")[1]));
 
       // create Y-axis label
       chart.append("text")
-           .attr("class", "y label")
+           .attr("class", "ylabel")
            .attr("text-anchor", "middle")
            .attr("y", 15)
            .attr("x", 0 - (height / 2))
            .attr("transform", "rotate(-90)")
-           .style({ 'fill': 'purple', 'font-size':'12px'})
-           .style("opacity", .4)
-           .text(measure_1.name.split(".")[0].toUpperCase() + ' ' + capitalizeFirstLetter(measure_1.name.split(".")[1]));             
+           .style({ 'fill': 'black', 'font-size':'12px'})
+           // .style("opacity", .4)
+           .text(ylabel);
+           // .text(measure_2.name.split(".")[0].toUpperCase() + ' ' + capitalizeFirstLetter(measure_2.name.split(".")[1]));             
 
     }
   };
