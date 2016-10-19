@@ -390,6 +390,7 @@ D3Funnel.prototype.__isArray = function(value)
     // Construct the top of the trapezoid and leave the other elements
     // hovering around to expand downward on animation
     // console.log(this.isCurved);
+<<<<<<< HEAD
     if (paths){
       if (!this.isCurved) {
       beforePath = "M" + paths[0][0] + "," + paths[0][1] +
@@ -404,6 +405,23 @@ D3Funnel.prototype.__isArray = function(value)
         " M" + paths[2][0] + "," + paths[2][1] +
         " Q" + paths[1][0] + "," + paths[1][1] +
         " " + paths[0][0] + "," + paths[0][1];
+=======
+    if(path){
+        if (!this.isCurved) {
+        beforePath = "M" + paths[0][0]||0 + "," + paths[0][1]||0 +
+          " L" + paths[1][0]||0 + "," + paths[1][1]||0 +
+          " L" + paths[1][0]||0 + "," + paths[1][1]||0 +
+          " L" + paths[0][0]||0 + "," + paths[0][1]||0;
+      } else {
+        beforePath = "M" + paths[0][0]||0 + "," + paths[0][1]||0 +
+          " Q" + paths[1][0]||0 + "," + paths[1][1]||0 +
+          " " + paths[2][0]||0 + "," + paths[2][1]||0 +
+          " L" + paths[2][0]||0 + "," + paths[2][1]||0 +
+          " M" + paths[2][0]||0 + "," + paths[2][1]||0 +
+          " Q" + paths[1][0]||0 + "," + paths[1][1]||0 +
+          " " + paths[0][0]||0 + "," + paths[0][1]||0;
+      }
+>>>>>>> ed46789bb70390bdcc63b5a453028d2d8951d10f
     }
     }
     

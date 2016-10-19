@@ -11,9 +11,14 @@
     .attr('class', 'looker-chart-tooltip')
     .offset([-10, 0])
     .html(function(data) {
+<<<<<<< HEAD
       return "<strong>" + data.dimension.name.split(".")[0].toUpperCase() + ' ' + capitalizeFirstLetter(data.dimension.name.split(".")[1]) 
         + "</strong> <span style='color:red'>" + data.n + "</span>";
        
+=======
+      return "<strong>" + data.measure2.label + ": "
+        + "</strong> <span style=''>" + data.z + "</span>";
+>>>>>>> ed46789bb70390bdcc63b5a453028d2d8951d10f
     });
 
   var viz = {
@@ -37,7 +42,7 @@
     },
     handleErrors: function(data, resp) {
       if (!resp || !resp.fields) return null;
-      if (resp.fields.dimensions.length != 1) {
+      if (resp.fields.dimension_like.length != 1) {
         this.addError({
           group: 'dimension-req',
           title: 'Incompatible Data',
@@ -47,7 +52,11 @@
       } else {
         this.clearErrors('dimension-req');
       }
+<<<<<<< HEAD
       if (resp.fields.measures.length < 2) {
+=======
+      if (resp.fields.measure_like.length != 2) {
+>>>>>>> ed46789bb70390bdcc63b5a453028d2d8951d10f
         this.addError({
           group: 'measure-req',
           title: 'Incompatible Data',
@@ -62,6 +71,13 @@
 
     create: function(element, settings) {
       
+    },
+
+    update: function(data, element, settings, resp) {   
+      if (!this.handleErrors(data, resp)) return;
+
+      $(element).html("")
+
       // create SVG element
       var chart = d3.select(element).empty();
       var chart = d3.select(element)
@@ -72,10 +88,7 @@
       
       // invoke tooltip
       chart.call(tip);
-    },
 
-    update: function(data, element, settings, resp) {   
-      if (!this.handleErrors(data, resp)) return;
 
       console.log(resp);
 
@@ -119,9 +132,9 @@
       //  get meta data for labels, etc.
       var extractData = mkExtracter(data);
       var extractDrill = drillExtracter(data);
-      var dimension = resp.fields.dimensions[0];    // meta data for dimension
-      var measure_1 = resp.fields.measures[0];      // meta data for first measure
-      var measure_2 = resp.fields.measures[1];      // meta data for second measure
+      var dimension = resp.fields.dimension_like[0];    // meta data for dimension
+      var measure_1 = resp.fields.measure_like[0];      // meta data for first measure
+      var measure_2 = resp.fields.measure_like[1];      // meta data for second measure
       var measure_2_drill = extractDrill(measure_2.name)
       var measure_3 = resp.fields.measures[2] || measure_1;      // meta data for second measure
       var measure_4 = resp.fields.measures[3] || measure_1;      // meta data for second measure
@@ -168,13 +181,23 @@
                      .range([ padding, width - padding]);
                      // .rangePoints([padding, width - padding * 2]);
 
+      var extentY = d3.extent(y);
+      extentY[0] = 0;
+
       var yScale = d3.scale.linear()
+<<<<<<< HEAD
                      .domain([ymin - 5, d3.max(y) + 5])
                      .range([height - padding, padding]);
+=======
+                     .domain(extentY)
+                     .range([height - padding, padding])
+                     .nice();
+>>>>>>> ed46789bb70390bdcc63b5a453028d2d8951d10f
 
       var rScale = d3.scale.linear()
-                      .domain([d3.min(z), d3.max(z)])
-                      .range([1, z.length/2]);
+                     .domain([d3.min(z), d3.max(z)])
+                     .range([10, 35])
+                     .nice();
 
       var range = settings['colorRange'] || ['green', 'red'];
       var cScale = d3.scale.category10().domain([d3.min(c), d3.max(c)]);
@@ -200,7 +223,7 @@
 
       // draw circles
       var circles = chart.selectAll("circle")
-        .data(data_zip)
+        .data(data_zip);
 
       circles.enter()
         .append("circle");
@@ -246,9 +269,14 @@
           .attr("class", "x axis");
       }
 
+<<<<<<< HEAD
       xAxisNodeSelection.attr("transform", "translate("+margin.left+"," + (height - padding) + ")")
         .style({ 'stroke': 'Black', 'fill': 'none', 'stroke-width': '1px'})
         .attr('transform', 'translate(0, ' + yScale(0) + ')')
+=======
+      xAxisNodeSelection.attr("transform", "translate(0," + (height - padding) + ")")
+        .style({ 'stroke': 'Black', 'fill': 'none', 'stroke-width': '.5px'})
+>>>>>>> ed46789bb70390bdcc63b5a453028d2d8951d10f
         .call(xAxis); 
 
       // create Y axis
@@ -272,8 +300,12 @@
            .attr("x", width/2)
            .attr("y", height - 10)
            .style({ 'fill': 'black', 'font-size':'12px'})
+<<<<<<< HEAD
            .text(xlabel);
            // .text(measure_1.name.split(".")[0].toUpperCase() + ' ' + capitalizeFirstLetter(measure_1.name.split(".")[1]));
+=======
+           .text(dimension.label);
+>>>>>>> ed46789bb70390bdcc63b5a453028d2d8951d10f
 
       // create Y-axis label
       chart.append("text")
@@ -282,10 +314,16 @@
            .attr("y", 15)
            .attr("x", 0 - (height / 2))
            .attr("transform", "rotate(-90)")
+<<<<<<< HEAD
            .style({ 'fill': 'black', 'font-size':'12px'})
            // .style("opacity", .4)
            .text(ylabel);
            // .text(measure_2.name.split(".")[0].toUpperCase() + ' ' + capitalizeFirstLetter(measure_2.name.split(".")[1]));             
+=======
+           .style({ 'fill': 'purple', 'font-size':'12px'})
+           .style("opacity", .4)
+           .text(measure_1.label);             
+>>>>>>> ed46789bb70390bdcc63b5a453028d2d8951d10f
 
     }
   };
