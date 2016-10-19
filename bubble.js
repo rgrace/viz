@@ -11,14 +11,10 @@
     .attr('class', 'looker-chart-tooltip')
     .offset([-10, 0])
     .html(function(data) {
-<<<<<<< HEAD
+
       return "<strong>" + data.dimension.name.split(".")[0].toUpperCase() + ' ' + capitalizeFirstLetter(data.dimension.name.split(".")[1]) 
         + "</strong> <span style='color:red'>" + data.n + "</span>";
        
-=======
-      return "<strong>" + data.measure2.label + ": "
-        + "</strong> <span style=''>" + data.z + "</span>";
->>>>>>> ed46789bb70390bdcc63b5a453028d2d8951d10f
     });
 
   var viz = {
@@ -52,11 +48,7 @@
       } else {
         this.clearErrors('dimension-req');
       }
-<<<<<<< HEAD
       if (resp.fields.measures.length < 2) {
-=======
-      if (resp.fields.measure_like.length != 2) {
->>>>>>> ed46789bb70390bdcc63b5a453028d2d8951d10f
         this.addError({
           group: 'measure-req',
           title: 'Incompatible Data',
@@ -185,14 +177,8 @@
       extentY[0] = 0;
 
       var yScale = d3.scale.linear()
-<<<<<<< HEAD
                      .domain([ymin - 5, d3.max(y) + 5])
                      .range([height - padding, padding]);
-=======
-                     .domain(extentY)
-                     .range([height - padding, padding])
-                     .nice();
->>>>>>> ed46789bb70390bdcc63b5a453028d2d8951d10f
 
       var rScale = d3.scale.linear()
                      .domain([d3.min(z), d3.max(z)])
@@ -269,14 +255,9 @@
           .attr("class", "x axis");
       }
 
-<<<<<<< HEAD
       xAxisNodeSelection.attr("transform", "translate("+margin.left+"," + (height - padding) + ")")
         .style({ 'stroke': 'Black', 'fill': 'none', 'stroke-width': '1px'})
         .attr('transform', 'translate(0, ' + yScale(0) + ')')
-=======
-      xAxisNodeSelection.attr("transform", "translate(0," + (height - padding) + ")")
-        .style({ 'stroke': 'Black', 'fill': 'none', 'stroke-width': '.5px'})
->>>>>>> ed46789bb70390bdcc63b5a453028d2d8951d10f
         .call(xAxis); 
 
       // create Y axis
@@ -300,12 +281,8 @@
            .attr("x", width/2)
            .attr("y", height - 10)
            .style({ 'fill': 'black', 'font-size':'12px'})
-<<<<<<< HEAD
            .text(xlabel);
            // .text(measure_1.name.split(".")[0].toUpperCase() + ' ' + capitalizeFirstLetter(measure_1.name.split(".")[1]));
-=======
-           .text(dimension.label);
->>>>>>> ed46789bb70390bdcc63b5a453028d2d8951d10f
 
       // create Y-axis label
       chart.append("text")
@@ -314,16 +291,10 @@
            .attr("y", 15)
            .attr("x", 0 - (height / 2))
            .attr("transform", "rotate(-90)")
-<<<<<<< HEAD
            .style({ 'fill': 'black', 'font-size':'12px'})
            // .style("opacity", .4)
            .text(ylabel);
-           // .text(measure_2.name.split(".")[0].toUpperCase() + ' ' + capitalizeFirstLetter(measure_2.name.split(".")[1]));             
-=======
-           .style({ 'fill': 'purple', 'font-size':'12px'})
-           .style("opacity", .4)
-           .text(measure_1.label);             
->>>>>>> ed46789bb70390bdcc63b5a453028d2d8951d10f
+           // .text(measure_2.name.split(".")[0].toUpperCase() + ' ' + capitalizeFirstLetter(measure_2.name.split(".")[1]));   
 
     }
   };
