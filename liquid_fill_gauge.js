@@ -443,6 +443,8 @@
     update: function(data, element, settings, resp) {
       config = liquidFillGaugeDefaultSettings();
       config = _.extend(config, settings);
+      var compareField = null
+      var compareCell = {value: null}
       if (resp.fields.measure_like.length > 0)
         datumField = resp.fields.measure_like[0]
       else if (resp.fields.dimension_like.length > 0)
@@ -450,7 +452,7 @@
       if (datumField)
         datum = data[0][datumField.name]
 
-      if (config.show_comparison && data)
+      if (config.showComparison && data)
         if (resp.fields.measure_like.length > 1)
           compareField = resp.fields.measure_like[1]
         else if (resp.fields.dimension_like.length > 1 && resp.fields.measure_like.length == 0)
@@ -460,10 +462,11 @@
         else
           compareField = resp.fields.measure_like[0] || resp.fields.dimension_like[0]
 
-      compareCell = data[0][compareField.name]
+        if (compareField)
+          compareCell = data[0][compareField.name]
 
-      if (config.displayPercent && config.showComparison && compareCell.value > 0)
-        datum.value = datum.value / compareCell.value * 100
+        if (config.displayPercent && config.showComparison && compareCell.value > 0)
+          datum.value = datum.value / compareCell.value * 100
 
       $elem = d3.select(element).selectAll("svg#" + this.id).data([datum])
       $elem.enter()
