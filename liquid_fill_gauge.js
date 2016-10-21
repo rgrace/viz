@@ -9,6 +9,7 @@
 (function() {
   function liquidFillGaugeDefaultSettings(){
       return {
+          showComparison: true,
           minValue: 0, // The gauge minimum value.
           maxValue: 100, // The gauge maximum value.
           circleThickness: 0.05, // The outer circle thickness as a percentage of it's radius.
@@ -32,13 +33,15 @@
       };
   }
 
-  function loadLiquidFillGauge(elementId, value, config) {
+  function loadLiquidFillGauge(elementId, value, config, compareValue) {
       if(config == null) config = liquidFillGaugeDefaultSettings();
 
       var gauge = d3.select("#" + elementId);
       var radius = Math.min(parseInt(gauge.style("width")), parseInt(gauge.style("height")))/2;
       var locationX = parseInt(gauge.style("width"))/2 - radius;
       var locationY = parseInt(gauge.style("height"))/2 - radius;
+      if (config.showComparison && compareValue && !isNaN(compareValue))
+        config.maxValue = compareValue
       var fillPercent = Math.max(config.minValue, Math.min(config.maxValue, value))/config.maxValue;
 
       var waveHeightScale;
@@ -273,13 +276,22 @@
     id: 'liquid_fill_gauge',
     label: 'Liquid Fill Gauge',
     options: {
+      showComparison: {
+        label: "Use field comparison",
+        default: false,
+        section: "Value",
+        type: "boolean"
+      },
       maxValue: {
         label: "Max value",
         min: 0,
         default: 100,
         section: "Value",
         type: "number",
-        placeholder: "Any positive number"
+        placeholder: "Any positive number",
+        hidden: function(options) {
+          return options.showComparison
+        }
       },
       minValue: {
         label: "Min value",
@@ -340,7 +352,7 @@
       waveAnimateTime: {
         label: "Wave Animation Time",
         min: 0,
-        default: 18000,
+        default: 1800,
         section: "Waves",
         type: "number",
         placeholder: "Any positive number"
@@ -423,9 +435,9 @@
     },
 
     create: function(element, settings) {
-      var id = _.uniqueId("fill-gauge-");
+      this.id = _.uniqueId("fill-gauge-");
       $elem = d3.select(element).append("svg");
-      $elem.attr("id", id);
+      $elem.attr("id", this.id);
     },
 
     update: function(data, element, settings, resp) {
@@ -438,13 +450,28 @@
       if (datumField)
         datum = data[0][datumField.name]
 
-      $elem = d3.select(element).selectAll("svg")
+      if (config.show_comparison && data)
+        if (resp.fields.measure_like.length > 1)
+          compareField = resp.fields.measure_like[1]
+        else if (resp.fields.dimension_like.length > 1 && resp.fields.measure_like.length == 0)
+          compareField = resp.fields.dimension_like[1]
+        else if (resp.fields.measure_like.length == 1 && resp.fields.dimension_like.length >= 1)
+          compareField = resp.fields.dimension_like[0]
+        else
+          compareField = resp.fields.measure_like[0] || resp.fields.dimension_like[0]
+
+      compareCell = data[0][compareField.name]
+
+      if (config.displayPercent && config.showComparison && compareCell.value > 0)
+        datum.value = datum.value / compareCell.value * 100
+
+      $elem = d3.select(element).selectAll("svg#" + this.id).data([datum])
+      $elem.enter()
       $elem.html("")
-      $elem.append("svg")
-      id = $elem.attr("id");
       $elem.attr("width", "100%")
       $elem.attr("height", element.clientHeight)
-      this.gauge = loadLiquidFillGauge(id, datum.value, config);
+      $elem.exit().remove()
+      this.gauge = loadLiquidFillGauge(this.id, datum.value, config, compareCell.value);
 
     }
   };
