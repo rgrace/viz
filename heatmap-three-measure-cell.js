@@ -86,6 +86,13 @@ looker.plugins.visualizations.add({
       section: "Data",
       default: true,
       order: 10
+    },      
+    showFirstColumn: {
+      type: "boolean",
+      label: "Show First Column",
+      section: "Data",
+      default: true,
+      order: 10.5
     },    
 
     equalWidth: {
@@ -206,46 +213,7 @@ looker.plugins.visualizations.add({
   },
   update: function(data, element, settings, resp) {
     var columncount = 1 + resp["pivots"].length || 0;
-    // console.log(columncount);
-
-      // var tableOffset = $("#heatmap-table").offset().top;
-      // var $header = $("#heatmap-table1 > thead").clone();
-      // var $fixedHeader = $("#heatmap-table").append($header);
-
-      // $(window).bind("scroll", function() {
-      //     var offset = $(this).scrollTop();
-
-      //     if (offset >= tableOffset && $fixedHeader.is(":hidden")) {
-      //         $fixedHeader.show();
-      //     }
-      //     else if (offset < tableOffset) {
-      //         $fixedHeader.hide();
-      //     }
-      // });
-
-
-    // var $sidebar = $(".thead"),
-    //     $window = $('#heatmap-table'),
-    //     offset = $sidebar.offset(),
-    //     topPadding = 0;
-
-    // $window.scroll(function() {
-    //     console.log("scrolling");
-    //     if ($window.scrollTop() > offset.top) {
-    //         $sidebar.stop().animate({
-    //             top: $window.scrollTop() - offset.top + topPadding
-    //         });
-    //     } else {
-    //         $sidebar.stop().animate({
-    //             top: 0
-    //         });
-    //     }
-    // });
-
-
-
-// console.log(resp);
-  if (!this.handleErrors(data, resp)) return;
+    if (!this.handleErrors(data, resp)) return;
     this.clearErrors('color-error');
     //var customColorSettings = settings.colorRange || ['white','#b3c8dc','#b3c8dc'];
    
@@ -267,6 +235,7 @@ looker.plugins.visualizations.add({
     var cellBorderColor = settings.cellBorderColor || '#000000';
     // var colorBottom = settings.colorBottom || false;
     var colorFirstColumn = settings.colorFirstColumn || false;
+    var showFirstColumn = settings.showFirstColumn || false;
     var nullCellBorders = settings.nullCellBorders || false;
     var verticalAlign = settings.verticalAlign || 'top';
     var equalWidth = settings.equalWidth || false;
@@ -365,7 +334,7 @@ looker.plugins.visualizations.add({
 
     var tableHeaderData = [null];
     pivot.forEach(function(pivot) {
-      // console.log(pivot.key);
+      // console.log(pivot);
         var outputHeader = "";
 
         if (headerPrefix == '') {
@@ -378,6 +347,12 @@ looker.plugins.visualizations.add({
       tableHeaderData.push(outputHeader);
       tableHeaderData[0] = headTitle || null;
     });
+
+    // remove first header, we also do this in the tddata push
+
+    if(!showFirstColumn){
+      tableHeaderData.splice(1, 1);
+    }
 
     var thead = table.selectAll('thead')
       .data([[tableHeaderData]]);
@@ -453,14 +428,19 @@ looker.plugins.visualizations.add({
         var tdData = [];
         tdData.push({type: 'dimension', data: datum[dimension.name]});
         datum[dimension.name];
+
         var measureData = datum[measure.name];
         var measureData1 = datum[measure1.name] || '';
         var measureData2 = datum[measure2.name] || '';
         var keyCount = 0; // to indicate column order
         pivot.forEach(function(pivot) {
-          tdData.push({type: 'measure', column: keyCount ,data: measureData[pivot.key], data1: measureData1[pivot.key] || {} ,data2: measureData2[pivot.key] || {} });
+          if (keyCount != 0 || showFirstColumn)
+            {
+              tdData.push({type: 'measure', column: keyCount ,data: measureData[pivot.key], data1: measureData1[pivot.key] || {} ,data2: measureData2[pivot.key] || {} });
+            }
           keyCount = keyCount + 1; // increment
         });
+
         return tdData;
       });
     tds.enter()
@@ -565,9 +545,10 @@ looker.plugins.visualizations.add({
       // smart width
 
         
-      .style('width',function(){
-            if(equalWidth) {
-              return 100/columncount + '%'
+      .style('width',function(d){
+
+             if(equalWidth) {
+              return 100/columncount + '%';
         }
       })
         
