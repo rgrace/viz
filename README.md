@@ -1,7 +1,7 @@
 #Custom Looker Visualizations
 
 ####Preliminaries:
-1. In order to utilize Looker's visualization plugin, a license feature must first be enabled. Use in-app chat, email support, or email a Looker analyst and ask them to turn on this feature. Once this is done, you will need to update your license key in the admin panel.
+1. In order to utilize Looker's visualization plugin, a license feature must first be enabled. Use in-app chat, email support, or email a Looker analyst and ask them to turn on this feature. Once this is done, you will need to update your license key in the admin panel. [This "how to" article discusses the setup steps in detail](https://discourse.looker.com/t/how-to-make-custom-visualizations-3-16-requires-javascript-self-hosting).
 2. At present, only on-premise (*i.e.*, customer hosted) Lookers support custom visualizations. This is because one needs access to the file system to add and remove custom JavaScript.
 3. Looker's Customer Support team does not troubleshoot *any* issues that pertain to custom visualizations. Custom visualizations are a community supported effort. Please use issues for tracking and closing out bugs, and visit https://discourse.looker.com for how-to articles, conversations, and tips regarding custom visualizations.
 
