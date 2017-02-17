@@ -227,7 +227,7 @@
 
       // add the rectangles for the nodes
         node.append("rect")
-            .attr("height", function(d) { return d.dy; })
+            .attr("height", function(d) { return Math.max(d.dy,0); })
             .attr("width", sankey.nodeWidth())
             .style("fill", function(d) { 
               return d.color = color(d.name.replace(/ .*/, "")); })
