@@ -460,7 +460,7 @@ function cloud(d3) {
     for (var i = data.length - 1; i >= 0; i--) {
       source.push({
           text: data[i][dim].value
-          ,size: data[i][mes].value/max_value * settings.fontSize || 50
+          ,size: data[i][mes].value/max_value * settings.fontSize + 10 || 50
           ,url: data[i][mes].drilldown_uri
           });
 }
