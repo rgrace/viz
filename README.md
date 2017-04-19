@@ -14,4 +14,4 @@ Once a custom visualiation script is saved in the above-mentioned directory, you
 
 Which looks like this:
 
-![ScreenShot](http://s8.postimg.org/n87cxkbid/Screen_Shot_2015_03_25_at_8_21_59_AM.png?raw=true)
+![ScreenShot](https://s8.postimg.org/n87cxkbid/Screen_Shot_2015-03-25_at_8.21.59_AM.png)
