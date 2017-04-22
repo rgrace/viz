@@ -20,7 +20,7 @@ looker.plugins.visualizations.add({
     var css = element.innerHTML = `
       <style>
         .hello-world-vis {
-          // Vertical centering
+          /* Vertical centering */
           height: 100%;
           display: flex;
           flex-direction: column;
