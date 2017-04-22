@@ -1,5 +1,5 @@
 // this visualization requires the code that makes up the sankey plugin.
-// personally, I just pasted that code into the same ~/looker/plugins/visualizations 
+// personally, I just pasted that code into the same ~/looker/plugins/visualizations
 // directory as sankey-plugin.js
 
 (function() {
@@ -9,15 +9,6 @@
   function capitalizeFirstLetter(string) {
       return string.charAt(0).toUpperCase() + string.slice(1);
   }
-
-  // create tooltip
-  var tip = d3.tip()
-    .attr('class', 'looker-chart-tooltip')
-    .offset([-10, 0])
-    .html(function(data) {
-      return "<strong>" + data.measure2.name.split(".")[0].toUpperCase() + ' ' + capitalizeFirstLetter(data.measure2.name.split(".")[1]) 
-        + "</strong> <span style='color:red'>" + data.z + "</span>";
-    });
 
   var viz = {
     id: 'sankey',
@@ -56,20 +47,30 @@
     },
 
     create: function(element, settings) {
-      
+
       // create SVG element
       var chart = d3.select(element)
         .append('svg')
         .attr('width', '100%')
-        .attr('height', '100%')                 
+        .attr('height', '100%')
         .attr('class', 'chart');
-      
+
       // invoke tooltip
       chart.call(tip);
     },
 
-    update: function(data, element, settings, resp) {   
+    update: function(data, element, settings, resp) {
       if (!this.handleErrors(data, resp)) return;
+
+      // create tooltip
+      var tip = d3.tip()
+        .attr('class', 'looker-chart-tooltip')
+        .offset([-10, 0])
+        .html(function(data) {
+          return "<strong>" + data.measure2.name.split(".")[0].toUpperCase() + ' ' + capitalizeFirstLetter(data.measure2.name.split(".")[1])
+            + "</strong> <span style='color:red'>" + data.z + "</span>";
+        });
+
 
       var $el = $(element);
       var $svg = $el.find("svg");
@@ -123,7 +124,7 @@
           return r;
       }
       var names = ArrNoDupe(x.concat(y));
-      
+
       // construct node names
       var nodes = [];
       names.forEach(function(x, i){
@@ -144,7 +145,7 @@
       graph["nodes"] = nodes;
 
       // define margin height and width
-      var margin = {top: 10, right: 10, bottom: 10, left: 10};   
+      var margin = {top: 10, right: 10, bottom: 10, left: 10};
       var width = $el.width() - margin.left - margin.right;
       var height = $el.height() - margin.top - margin.bottom;
       var padding = 60;
@@ -161,9 +162,9 @@
       var chart = d3.select(element)
         .select('svg.chart')
         .attr( "viewBox",
-        "" + (0 - horizontalMarginSize ) + " "    
-        + cycleTopMarginSize + " "                
-        + (960 + horizontalMarginSize * 2 ) + " " 
+        "" + (0 - horizontalMarginSize ) + " "
+        + cycleTopMarginSize + " "
+        + (960 + horizontalMarginSize * 2 ) + " "
         + (500 + (-1 * cycleTopMarginSize)) + " " );
 
       // map nodes, links, and values
@@ -191,7 +192,7 @@
             .style({ "stroke": "#000"
                     , "fill": "none"
                     , "opacity": '0.2'
-                    , "stroke-width": function(d) { return Math.max(1, d.dy);} })         
+                    , "stroke-width": function(d) { return Math.max(1, d.dy);} })
       .on('mouseover', function(d){
         var nodeSelection = d3.select(this).style({opacity:'0.5'});
             nodeSelection.select("text").style({opacity:'0.1'});
@@ -199,7 +200,7 @@
             .on('mouseout', function(d){
                   var nodeSelection = d3.select(this).style({opacity:'0.2'});
                   nodeSelection.select("text").style({opacity:'0.1'});
-                })      
+                })
       .sort(function(a, b) { return b.dy - a.dy; });
 
       // handlize cycles
@@ -209,7 +210,7 @@
       // add the link titles
         link.append("title")
             .text(function(d) {
-            return d.source.name + " → " + 
+            return d.source.name + " → " +
                    d.target.name + "\n" + format(d.value); });
 
       // add in the nodes
@@ -217,11 +218,11 @@
             .data(graph.nodes)
             .enter().append("g")
             .attr("class", "node")
-            .attr("transform", function(d) { 
+            .attr("transform", function(d) {
             return "translate(" + d.x + "," + d.y + ")"; })
             .call(d3.behavior.drag()
             .origin(function(d) { return d; })
-            .on("dragstart", function() { 
+            .on("dragstart", function() {
             this.parentNode.appendChild(this); })
             .on("drag", dragmove));
 
@@ -229,12 +230,12 @@
         node.append("rect")
             .attr("height", function(d) { return Math.max(d.dy,0); })
             .attr("width", sankey.nodeWidth())
-            .style("fill", function(d) { 
+            .style("fill", function(d) {
               return d.color = color(d.name.replace(/ .*/, "")); })
-            .style("stroke", function(d) { 
+            .style("stroke", function(d) {
               return d3.rgb(d.color).darker(2); })
             .append("title")
-            .text(function(d) { 
+            .text(function(d) {
               return d.name + "\n" + format(d.value); });
 
       // add in the title for the nodes
@@ -251,7 +252,7 @@
 
       // the function for moving the nodes
         function dragmove(d) {
-          d3.select(this).attr("transform", 
+          d3.select(this).attr("transform",
               "translate(" + d.x + "," + (
                       d.y = Math.max(0, Math.min(height - d.dy, d3.event.y))
                   ) + ")");

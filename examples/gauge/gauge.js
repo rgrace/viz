@@ -1,4 +1,3 @@
-(function() {
 looker.plugins.visualizations.add({
   id: 'gauge',
   label: 'Gauge',
@@ -40,72 +39,72 @@ looker.plugins.visualizations.add({
       placeholder: '2'
     }
   },
-    redraw : function(value, transitionDuration) {
-        var pointerContainer = this.main.select(".pointerContainer");
-        var self = this
-        pointerContainer.selectAll("text").text(Math.round(value));
+  redraw: function(value, transitionDuration) {
+      var pointerContainer = this.main.select(".pointerContainer");
+      var self = this
+      pointerContainer.selectAll("text").text(Math.round(value));
 
-        var pointer = pointerContainer.selectAll("path");
-        pointer.transition()
-            .duration(undefined != transitionDuration ? transitionDuration : this.config.transitionDuration)
-            .attrTween("transform", function()
-            {
-                var pointerValue = value;
-                if (value > self.config.max) pointerValue = self.config.max + 0.02*self.config.range;
-                else if (value < self.config.min) pointerValue = self.config.min - 0.02*self.config.range;
-                var targetRotation = (self.value_to_degrees(pointerValue) - 90);
-                var currentRotation = self._currentRotation || targetRotation;
-                self._currentRotation = targetRotation;
+      var pointer = pointerContainer.selectAll("path");
+      pointer.transition()
+          .duration(undefined != transitionDuration ? transitionDuration : this.config.transitionDuration)
+          .attrTween("transform", function()
+          {
+              var pointerValue = value;
+              if (value > self.config.max) pointerValue = self.config.max + 0.02*self.config.range;
+              else if (value < self.config.min) pointerValue = self.config.min - 0.02*self.config.range;
+              var targetRotation = (self.value_to_degrees(pointerValue) - 90);
+              var currentRotation = self._currentRotation || targetRotation;
+              self._currentRotation = targetRotation;
 
-                return function(step)
-                {
-                    var rotation = currentRotation + (targetRotation-currentRotation)*step;
-                    return "translate(" + self.config.cx + ", " + self.config.cy + ") rotate(" + rotation + ")";
-                }
-            });
-    },
-    buildPointerPath: function(value) {
-        var self = this
+              return function(step)
+              {
+                  var rotation = currentRotation + (targetRotation-currentRotation)*step;
+                  return "translate(" + self.config.cx + ", " + self.config.cy + ") rotate(" + rotation + ")";
+              }
+          });
+  },
+  buildPointerPath: function(value) {
+      var self = this
 
-        var delta = this.config.range / 13;
+      var delta = this.config.range / 13;
 
-        var head = valueToPoint(value, 0.85);
-        var head1 = valueToPoint(value - delta, 0.12);
-        var head2 = valueToPoint(value + delta, 0.12);
+      var head = valueToPoint(value, 0.85);
+      var head1 = valueToPoint(value - delta, 0.12);
+      var head2 = valueToPoint(value + delta, 0.12);
 
-        var tailValue = value - (this.config.range * (1/(270/360)) / 2);
-        var tail = valueToPoint(tailValue, 0.28);
-        var tail1 = valueToPoint(tailValue - delta, 0.12);
-        var tail2 = valueToPoint(tailValue + delta, 0.12);
+      var tailValue = value - (this.config.range * (1/(270/360)) / 2);
+      var tail = valueToPoint(tailValue, 0.28);
+      var tail1 = valueToPoint(tailValue - delta, 0.12);
+      var tail2 = valueToPoint(tailValue + delta, 0.12);
 
-        return [head, head1, tail2, tail, tail1, head2, head];
+      return [head, head1, tail2, tail, tail1, head2, head];
 
-        function valueToPoint(value, factor)  {
-            var point = self.value_to_point(value, factor);
-            point.x -= self.config.cx;
-            point.y -= self.config.cy;
-            return point;
-        }
-    },
-    value_to_radians: function(value) {
-        return this.value_to_degrees(value) * Math.PI / 180
-    },
-    value_to_point: function(value, factor) {
-        return {
-            x: this.config.cx - this.config.radius * factor * Math.cos(this.value_to_radians(value)),
-            y: this.config.cy - this.config.radius * factor * Math.sin(this.value_to_radians(value))
-        };
-    },
+      function valueToPoint(value, factor)  {
+          var point = self.value_to_point(value, factor);
+          point.x -= self.config.cx;
+          point.y -= self.config.cy;
+          return point;
+      }
+  },
+  value_to_radians: function(value) {
+      return this.value_to_degrees(value) * Math.PI / 180
+  },
+  value_to_point: function(value, factor) {
+      return {
+          x: this.config.cx - this.config.radius * factor * Math.cos(this.value_to_radians(value)),
+          y: this.config.cy - this.config.radius * factor * Math.sin(this.value_to_radians(value))
+      };
+  },
 
-    value_to_degrees: function(value) {
-        return value / this.config.range * 270 - (this.config.min / this.config.range * 270 + 45)
-    },
+  value_to_degrees: function(value) {
+      return value / this.config.range * 270 - (this.config.min / this.config.range * 270 + 45)
+  },
 
   handleErrors: function(data, resp) {
     if (!resp || !resp.fields) {
       return false
     };
-    console.log(resp.fields);
+
     if (resp.fields.measures.length != 1 || resp.fields.dimensions.length != 1) {
       this.addError({
         group: 'measure-req',
@@ -131,11 +130,11 @@ looker.plugins.visualizations.add({
       .attr("class", "gauge")
       .attr("width", '90%')
       .attr("height", '90%');
-    console.log("run create");
+
   },
   update: function(data, element, settings, resp) {
     if (!this.handleErrors(data, resp)) return;
-    console.log("run update");
+
 
     this.clearErrors('color-error');
     this.clearErrors('bounds-error');
@@ -340,4 +339,3 @@ looker.plugins.visualizations.add({
     this.redraw(field_data.value, 10);
   }
 });
-}());

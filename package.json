@@ -1,0 +1,14 @@
+{
+  "name": "looker-visualization-api-examples",
+  "version": "1.0.0",
+  "repository": "https://github.com/llooker/custom_visualizations.git",
+  "author": "Wil Gieseler <wil@looker.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "d3": "^4.8.0",
+    "mocha": "^3.2.0"
+  },
+  "scripts": {
+    "test": "mocha"
+  }
+}

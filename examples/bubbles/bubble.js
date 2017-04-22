@@ -4,18 +4,7 @@
   // function to format axis label (sort of)
   function capitalizeFirstLetter(string) {
       return string.charAt(0).toUpperCase() + string.slice(1);
-  }  
-
-  // create tooltip
-  var tip = d3.tip()
-    .attr('class', 'looker-chart-tooltip')
-    .offset([-10, 0])
-    .html(function(data) {
-
-      return "<strong>" + data.dimension.name.split(".")[0].toUpperCase() + ' ' + capitalizeFirstLetter(data.dimension.name.split(".")[1]) 
-        + "</strong> <span style='color:red'>" + data.n + "</span>";
-       
-    });
+  }
 
   var viz = {
     id: 'bubble',
@@ -62,10 +51,10 @@
     },
 
     create: function(element, settings) {
-      
+
     },
 
-    update: function(data, element, settings, resp) {   
+    update: function(data, element, settings, resp) {
       if (!this.handleErrors(data, resp)) return;
 
       $(element).html("")
@@ -75,9 +64,20 @@
       var chart = d3.select(element)
         .append('svg')
         .attr('width', '100%')
-        .attr('height', '100%')                 
+        .attr('height', '100%')
         .attr('class', 'chart');
-      
+
+      // create tooltip
+      var tip = d3.tip()
+        .attr('class', 'looker-chart-tooltip')
+        .offset([-10, 0])
+        .html(function(data) {
+
+          return "<strong>" + data.dimension.name.split(".")[0].toUpperCase() + ' ' + capitalizeFirstLetter(data.dimension.name.split(".")[1])
+            + "</strong> <span style='color:red'>" + data.n + "</span>";
+
+        });
+
       // invoke tooltip
       chart.call(tip);
 
@@ -102,10 +102,10 @@
                                         return x[name].drilldown_uri;
                                 });
                         };
-                };     
+                };
 
 
-      // introduce this later to handle axis labels for all field names 
+      // introduce this later to handle axis labels for all field names
       // var myString = 'orders.average_order_amount';
 
       // var mySepString = myString.split(/[.|_]/);
@@ -116,10 +116,10 @@
 
       // function mergeNice(stringArray){
       //    var fields = stringArray.slice(1, stringArray.length).map(capitalizeFirstLetter);
-      //    return stringArray[0].toUpperCase() 
+      //    return stringArray[0].toUpperCase()
       //        + ' '
       //        + fields.join(' ');
-      // }      
+      // }
 
       //  get meta data for labels, etc.
       var extractData = mkExtracter(data);
@@ -151,11 +151,11 @@
       });
 
       // define margin height and width
-      var margin = {top: 10, right: 10, bottom: 10, left: 20};   
+      var margin = {top: 10, right: 10, bottom: 10, left: 20};
       var width = $el.width() - margin.left - margin.right;
       var height = $el.height() - margin.top - margin.bottom;
       var padding = 60;
-      
+
       var xmin = d3.min(x);
       var ymin = d3.min(y);
       if(xmin > 0){
@@ -190,7 +190,7 @@
       if (settings['colorRange']){
         cScale = d3.scale.linear().domain([d3.min(c), d3.max(c)]).range(range);
       }
-      
+
       // console.log([d3.min(c), d3.max(c)]);
 
       // create x,y axes
@@ -233,7 +233,7 @@
                       d3.select(this).attr("r", 1.2*rScale(data.z) *settings['size']||1.0);
                       data.dimension = dimension;
                       tip.show(data);
-                    })                  
+                    })
         .on("mouseout", function(data) {
           d3.select(this).attr("r", rScale(data.z) *settings['size']||1.0);
           data.dimension = dimension;
@@ -258,7 +258,7 @@
       xAxisNodeSelection.attr("transform", "translate("+margin.left+"," + (height - padding) + ")")
         .style({ 'stroke': 'Black', 'fill': 'none', 'stroke-width': '1px'})
         .attr('transform', 'translate(0, ' + yScale(0) + ')')
-        .call(xAxis); 
+        .call(xAxis);
 
       // create Y axis
       var yAxisNodeSelection = chart.select('g.y.axis');
@@ -266,12 +266,12 @@
         yAxisNodeSelection = chart.append("g")
           .attr("class", "y axis");
       }
-      
+
       yAxisNodeSelection.attr("transform", "translate(" + padding + margin.left + ",0)")
         .style({ 'stroke': 'Black', 'fill': 'none', 'stroke-width': '1px'})
         .attr('transform', 'translate( ' +  xScale(0) + ',0)')
         .call(yAxis);
-      
+
       d3.selectAll('text.xlabel').remove();
       d3.selectAll('text.ylabel').remove();
       // create X-axis label
@@ -294,7 +294,7 @@
            .style({ 'fill': 'black', 'font-size':'12px'})
            // .style("opacity", .4)
            .text(ylabel);
-           // .text(measure_2.name.split(".")[0].toUpperCase() + ' ' + capitalizeFirstLetter(measure_2.name.split(".")[1]));   
+           // .text(measure_2.name.split(".")[0].toUpperCase() + ' ' + capitalizeFirstLetter(measure_2.name.split(".")[1]));
 
     }
   };
