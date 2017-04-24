@@ -392,7 +392,7 @@ options: {
 	
 - `display_size` _string_
 	
-	A size class representing the width of the option in the UI. For example, if you wanted to show a "Minumum" and a "Maximum" option next to each other, you could set each of their `display_size`s to `half`.
+	A size class representing the width of the option in the UI. For example, if you wanted to show a "Minimum" and a "Maximum" option next to each other, you could set each of their `display_size`s to `half`.
 
 	**Allowed Values:** `normal` (default), `half`, `third`
 

@@ -8,7 +8,7 @@
 
   var viz = {
     id: 'bubble',
-    label: 'Bubble',
+    label: 'Bubble Scatter',
     options: {
       colorRange: {
         type: 'array',
