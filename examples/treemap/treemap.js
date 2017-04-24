@@ -62,7 +62,7 @@ looker.plugins.visualizations.add({
     } else {
       this.clearErrors('pivot-req');
     }
-    if (resp.fields.measures.length > 1) {
+    if (resp.fields.measure_like.length > 1) {
       this.addError({
         group: 'measure-req',
         title: 'Incompatible Data',
@@ -121,7 +121,7 @@ Array.prototype.unique = function() {
 
 
 var parent_name = resp.fields.dimensions[0].name
-var measure = resp.fields.measures[0].name;
+var measure = resp.fields.measure_like[0].name;
 
 if (resp.fields.dimensions.length==2)
   {

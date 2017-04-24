@@ -43,7 +43,7 @@
      if (resp){
 
      var dim = resp.fields.dimensions[0].name,
-         mes = resp.fields.measures[0].name;
+         mes = resp.fields.measure_like[0].name;
      }
      d3.select("#myvis").remove();
 

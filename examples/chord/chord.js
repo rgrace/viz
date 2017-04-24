@@ -13,7 +13,7 @@ looker.plugins.visualizations.add({
 
     var dim = resp.fields.dimensions[0].name,
       piv = resp.fields.pivots[0].name,
-      mes = resp.fields.measures[0].name;
+      mes = resp.fields.measure_like[0].name;
 
     var source = []
     for (var i = data.length - 1; i >= 0; i--) {
