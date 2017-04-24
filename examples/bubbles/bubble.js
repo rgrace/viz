@@ -82,7 +82,7 @@
       chart.call(tip);
 
 
-      console.log(resp);
+      // console.log(resp);
 
       var $el = $(element);
 
@@ -166,7 +166,7 @@
       }
 
 
-      console.log(x);
+      // console.log(x);
       // console.log('xmin', xmin);
       var xScale = d3.scale.linear()
                      .domain([xmin, d3.max(x)])
@@ -215,7 +215,7 @@
         .append("circle");
 
       circles.attr("cx", function(x) {
-          console.log(x);
+          // console.log(x);
           return xScale(x.x)||1 + padding;
         })
         .attr("cy", function(x) {
