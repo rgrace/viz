@@ -37,7 +37,7 @@
       } else {
         this.clearErrors('dimension-req');
       }
-      if (resp.fields.measures.length < 2) {
+      if (resp.fields.measure_like.length < 2) {
         this.addError({
           group: 'measure-req',
           title: 'Incompatible Data',
@@ -72,9 +72,18 @@
         .attr('class', 'looker-chart-tooltip')
         .offset([-10, 0])
         .html(function(data) {
-
-          return "<strong>" + data.dimension.name.split(".")[0].toUpperCase() + ' ' + capitalizeFirstLetter(data.dimension.name.split(".")[1])
-            + "</strong> <span style='color:red'>" + data.n + "</span>";
+          var tip_string = "";
+          tip_string += "<strong>" + data.dimension.name.split(".")[0].toUpperCase() + ' ' + capitalizeFirstLetter(data.dimension.name.split(".")[1])
+            + "</strong> <span style='color:red'>" + data.n + "</span><br>";
+            tip_string += "<strong>" + measure_1.name.split(".")[0].toUpperCase() + ' ' + capitalizeFirstLetter(measure_1.name.split(".")[1] || "")
+            + "</strong> <span style='color:red'>" + data.x_tip + "</span><br>";
+            tip_string += "<strong>" + measure_2.name.split(".")[0].toUpperCase() + ' ' + capitalizeFirstLetter(measure_2.name.split(".")[1] || "")
+            + "</strong> <span style='color:red'>" + data.y_tip + "</span><br>";
+            tip_string += "<strong>" + measure_3.name.split(".")[0].toUpperCase() + ' ' + capitalizeFirstLetter(measure_3.name.split(".")[1] || "")
+            + "</strong> <span style='color:red'>" + data.z_tip + "</span><br>";
+            tip_string += "<strong>" + measure_4.name.split(".")[0].toUpperCase() + ' ' + capitalizeFirstLetter(measure_4.name.split(".")[1] || "")
+            + "</strong> <span style='color:red'>" + data.c_tip + "</span>";
+            return tip_string;
 
         });
 
@@ -82,7 +91,7 @@
       chart.call(tip);
 
 
-      console.log(resp);
+      // console.log(resp);
 
       var $el = $(element);
 
@@ -91,6 +100,15 @@
                         return function (name) {
                                 return data.map(function (x) {
                                         return x[name].value;
+                                });
+                        };
+                };
+
+                // function to grab tooltip formats
+      function tipExtracter(data, names) {
+                        return function (name) {
+                                return data.map(function (x) {
+                                        return x[name].rendered || x[name].value;
                                 });
                         };
                 };
@@ -123,13 +141,14 @@
 
       //  get meta data for labels, etc.
       var extractData = mkExtracter(data);
+      var extractTip = tipExtracter(data);
       var extractDrill = drillExtracter(data);
       var dimension = resp.fields.dimension_like[0];    // meta data for dimension
       var measure_1 = resp.fields.measure_like[0];      // meta data for first measure
       var measure_2 = resp.fields.measure_like[1];      // meta data for second measure
       var measure_2_drill = extractDrill(measure_2.name)
-      var measure_3 = resp.fields.measures[2] || measure_1;      // meta data for second measure
-      var measure_4 = resp.fields.measures[3] || measure_1;      // meta data for second measure
+      var measure_3 = resp.fields.measure_like[2] || measure_1;      // meta data for second measure
+      var measure_4 = resp.fields.measure_like[3] || measure_1;      // meta data for second measure
 
       var xlabel = measure_1.label;
       var ylabel = measure_2.label;
@@ -141,14 +160,21 @@
       var y = extractData(measure_2.name)
       var z = extractData(measure_3.name)
       var c = extractData(measure_4.name)
+      var x_tip = extractTip(measure_1.name)
+      var y_tip = extractTip(measure_2.name)
+      var z_tip = extractTip(measure_3.name)
+      var c_tip = extractTip(measure_4.name)
 
       // iterate over data
       var data_zip = [];
       x.forEach(function(_, i){
         data_zip.push({
-          x:x[i], y:y[i], z:z[i], c:c[i], n:n[i], drill:measure_2_drill[i]
+          x:x[i], y:y[i], z:z[i], c:c[i], n:n[i], drill:measure_2_drill[i],
+           x_tip:x_tip[i], y_tip:y_tip[i], z_tip:z_tip[i], c_tip:c_tip[i]
         })
       });
+
+      // console.log(data_zip);
 
       // define margin height and width
       var margin = {top: 10, right: 10, bottom: 10, left: 20};
@@ -166,7 +192,7 @@
       }
 
 
-      console.log(x);
+      // console.log(x);
       // console.log('xmin', xmin);
       var xScale = d3.scale.linear()
                      .domain([xmin, d3.max(x)])
@@ -215,7 +241,7 @@
         .append("circle");
 
       circles.attr("cx", function(x) {
-          console.log(x);
+          // console.log(x);
           return xScale(x.x)||1 + padding;
         })
         .attr("cy", function(x) {
