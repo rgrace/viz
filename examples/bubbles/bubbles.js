@@ -13,7 +13,7 @@ looker.plugins.visualizations.add({
   // ---------------------------------------------------------------------------------------------------------------------------
 
     id: 'bubbles',
-    label: 'bubbles',
+    label: 'Area Bubbles',
     options: {
 
 
@@ -205,13 +205,13 @@ var vis_box = element.getBoundingClientRect(),
     height = vis_box.height,
     width = vis_box.width;
 
-console.log(settings['colorRange']);
+// console.log(settings['colorRange']);
 
 
 var diameter = Math.max(width,height) ,  // remove
     format = d3.format(",d"),
     color = d3.scale.category20c();
-    if (settings.colorRange) {
+    if (settings.colorRange && settings.colorRange != "") {
 
     color_vals = []
     for (var i = data.length - 1; i >= 0; i--) {
