@@ -1,4 +1,4 @@
-# Looker Visualization API Examples [![Build Status](https://travis-ci.org/llooker/custom_visualizations.svg?branch=master)](https://travis-ci.org/llooker/custom_visualizations)
+# Looker Visualization API Examples [![Build Status](https://travis-ci.org/looker/visualization-api-examples.svg?branch=master)](https://travis-ci.org/looker/visualization-api-examples)
 
 [Looker](https://looker.com/)'s Visualization API provides a simple JavaScript interface to creating powerful, customizable visualizations that seamlessly integrate into your data applications. :bar_chart: :chart_with_downwards_trend: :chart_with_upwards_trend:
 
