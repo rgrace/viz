@@ -55,8 +55,6 @@
         .attr('height', '100%')
         .attr('class', 'chart');
 
-      // invoke tooltip
-      chart.call(tip);
     },
 
     update: function(data, element, settings, resp) {
@@ -70,7 +68,6 @@
           return "<strong>" + data.measure2.name.split(".")[0].toUpperCase() + ' ' + capitalizeFirstLetter(data.measure2.name.split(".")[1])
             + "</strong> <span style='color:red'>" + data.z + "</span>";
         });
-
 
       var $el = $(element);
       var $svg = $el.find("svg");
@@ -167,7 +164,9 @@
         + (960 + horizontalMarginSize * 2 ) + " "
         + (500 + (-1 * cycleTopMarginSize)) + " " );
 
-      // map nodes, links, and values
+	chart.call(tip);  
+
+    // map nodes, links, and values
       var nodeMap = {};
       graph.nodes.forEach(function(x) { nodeMap[x.name] = x; });
       graph.links = graph.links.map(function(x) {
