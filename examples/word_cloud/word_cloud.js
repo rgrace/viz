@@ -19,7 +19,12 @@
               {'Small': '25'}],
                default: '50',
                order: 1
-          }
+          ,
+          // selector:  {
+          //   display: 'hidden',
+          //   type: 'string'
+          // }
+        }
       }
     ,
 
@@ -28,14 +33,6 @@
         return true;
       },
       create: function(element, settings) {
-        // d3.select("#myvis").remove();
-        d3.select(element)
-            .append("div")
-            .attr("id", "myvis")
-            .attr('width', '100%')
-            .attr('height', '100%') ;
-          console.log("element updated");
-
 
             },
       update: function(data, element, settings, resp) {
@@ -45,7 +42,6 @@
      var dim = resp.fields.dimensions[0].name,
          mes = resp.fields.measure_like[0].name;
      }
-     d3.select("#myvis").remove();
 
 
 // Word cloud layout by Jason Davies, http://www.jasondavies.com/word-cloud/
@@ -91,7 +87,7 @@ function cloud(d3) {
             d.rotate = rotate.call(this, d, i);
             d.size = ~~fontSize.call(this, d, i);
             d.padding = padding.call(this, d, i);
-          console.log(n);
+          // console.log(n);
             return d;
 
           }).sort(function(a, b) { return b.size - a.size; });
@@ -441,7 +437,6 @@ function cloud(d3) {
 }
 
 })();
-      console.log(data);  
     if (typeof source == "undefined") {
 
         var source = [];
@@ -463,13 +458,13 @@ function cloud(d3) {
           ,size: data[i][mes].value/max_value * settings.fontSize + 10 || 50
           ,url: data[i][mes].drilldown_uri
           });
-}
+} 
                
-    // console.log(source);  
+
             var vals = [];
     for (var i = data.length - 1; i >= 0; i--) {
         vals[i] = data[i][mes].value; 
-        // console.log(source[i][piv]);
+
     };
 
 
@@ -477,8 +472,7 @@ function cloud(d3) {
 
       h = $(element).height() * .8;
       w = $(element).width() * .8;
-    // console.log(resp);
-    // console.log(source);
+
      d3.layout.cloud().size([h  , w])
       .words(source.map(function(d) {
         return {text: d.text, size: d.size , url: d.url};
@@ -493,23 +487,17 @@ function cloud(d3) {
     function draw(words) {
       console.log("drawing");
 
-      // if (typeof d3.select("#myvis") == "undefined"){
-      //   d3.select("#myvis").remove();
-      //   console.log("removed");
-      // }
-      // else {
       h = $(element).height();
       w = $(element).width();
 
-      console.log(h);
-          // console.log(data);
         console.log("created");
+      d3.select(element).selectAll("*").remove();
       d3.select(element)
             .append("div")
-            .attr("id", "myvis")
+            .attr("id", "word-cloud")
             .attr('width', '100%')
-            .attr('height', '100%') ;
-      d3.select("#myvis").append("svg")
+            .attr('height', '100%') 
+      .append("svg")
         .attr("width", w)
         .attr("height", h)
       .append("g")
@@ -531,7 +519,6 @@ function cloud(d3) {
      
 
       }
-        // }
       
 
     }
