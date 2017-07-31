@@ -20,10 +20,7 @@
                default: '50',
                order: 1
           ,
-          // selector:  {
-          //   display: 'hidden',
-          //   type: 'string'
-          // }
+
         }
       }
     ,
