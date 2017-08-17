@@ -40,9 +40,11 @@ looker.plugins.visualizations.add({
 
 // end options
   },
-  handleErrors: function(data, resp) {
+ 
+ handleErrors: function(data, resp) {
+
     if (!resp || !resp.fields) return null;
-    if (!(resp.fields.dimensions.length == 1 || resp.fields.dimensions.length == 2)) {
+    if (!(resp.fields.dimension_like.length == 1 || resp.fields.dimensions.length == 2)) {
       this.addError({
         group: 'dimension-req',
         title: 'Incompatible Data',
@@ -120,14 +122,14 @@ Array.prototype.unique = function() {
 //console.log(resp);
 
 
-var parent_name = resp.fields.dimensions[0].name
+var parent_name = resp.fields.dimension_like[0].name
 var measure = resp.fields.measure_like[0].name;
 
-if (resp.fields.dimensions.length==2)
+if (resp.fields.dimension_like.length==2)
   {
-    var dimension = resp.fields.dimensions[1].name;
+    var dimension = resp.fields.dimension_like[1].name;
   } else {
-    var dimension = resp.fields.dimensions[0].name;
+    var dimension = resp.fields.dimension_like[0].name;
   };
 
 //console.log(parent_name);
@@ -223,7 +225,7 @@ console.log(settings.dynamicFontSize);
     .enter().append("div")
       .attr("class", "node")
       .style("position","absolute")
-     // .style("overflow","hidden")
+      .style("overflow","hidden")
       .style("border", "1px solid #FFFFFF")
       .style("background", function(d) { return d.children ? color(d.name) : null; } || '#FFFFFF' )
       //.attr("id", function(d) { return d.name })
@@ -257,4 +259,5 @@ function position() {
 
 
 }());
+
 
