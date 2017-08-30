@@ -224,10 +224,32 @@
           .enter().append("path")
             .attr("d", monthPath);
 
+        var tooltip = d3.select(element)
+          .append("div").attr("id", "tooltip")
+          .style("position", "absolute")
+          .style("z-index", "10")
+          .style("visibility", "hidden")
+
         rect.filter(function(d) { return formattedData.has(d); })
             .attr("fill", function(d) { return color(formattedData.get(d)); })
-          .select("title")
+          .append("title")
             .text(function(d) { return d + ": " + formattedData.get(d); });
+          .on("click", function(d) { console.log(d);})
+          .on("mouseenter", function(d) {
+            tooltip.style("visibility", "visible");
+            d.style("fill-opacity", .15);
+            tooltip.transition()
+                    .duration(200)
+                    .style("opacity", .9);
+            tooltip.text(function(d) { return d + ": " + formattedData.get(d); })
+              .style("left",  (d3.event.pageX)+30 + "px")
+              .style("top", (d3.event.pageY) + "px");
+          })
+          .on("mouseleave", function(d) {
+            tooltip.text("")
+              .style("visibility", "hidden");
+            d.style("fill-opacity", 1);
+          });
       }
       calendarView(series, element, x.name, y.name)
     }
