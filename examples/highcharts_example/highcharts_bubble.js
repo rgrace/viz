@@ -192,6 +192,7 @@
         }
       }
 
+      console.log(series)
       options = {
         chart: {
           type: "bubble",
@@ -204,7 +205,7 @@
         xAxis: {
           type: x.is_timeframe ? "datetime" : x.is_numeric ? "linear" : "category",
           title: {
-            text: config.xAxisName ? config.xAxisName : x.label
+            text: config.xAxisName ? config.xAxisName : x.label_short
           }
         },
 
