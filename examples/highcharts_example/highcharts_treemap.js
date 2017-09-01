@@ -144,137 +144,12 @@
       nested_data = my_nest
         .entries(data)
 
-      // nested_data format:
-      // [
-      //   {
-      //     "key": "2016",
-      //     "values": [
-      //       {
-      //         "key": "Women",
-      //         "values": [
-      //           {
-      //             "orders.created_year": {
-      //               "value": 2016,
-      //             },
-      //             "products.department": {
-      //               "value": "Women"
-      //             },
-      //             "order_items.total_sale_price": {
-      //               "value": 602042.6999999805,
-      //               "rendered": "$602,042.70"
-      //             }
-      //           }
-      //         ]
-      //       },
-      //       {
-      //         "key": "Men",
-      //         "values": [
-      //           {
-      //             "orders.created_year": {
-      //               "value": 2016,
-      //             },
-      //             "products.department": {
-      //               "value": "Men"
-      //             },
-      //             "order_items.total_sale_price": {
-      //               "value": 512099.08999999426,
-      //               "rendered": "$512,099.09"
-      //             }
-      //           }
-      //         ]
-      //       }
-      //     ]
-      //   },
-      //   {
-      //     "key": "2017",
-      //     "values": [
-      //       {
-      //         "key": "Women",
-      //         "values": [
-      //           {
-      //             "orders.created_year": {
-      //               "value": 2017,
-      //             },
-      //             "products.department": {
-      //               "value": "Women"
-      //             },
-      //             "order_items.total_sale_price": {
-      //               "value": 481687.5599999917,
-      //               "rendered": "$481,687.56"
-      //             }
-      //           }
-      //         ]
-      //       },
-      //       {
-      //         "key": "Men",
-      //         "values": [
-      //           {
-      //             "orders.created_year": {
-      //               "value": 2017,
-      //             },
-      //             "products.department": {
-      //               "value": "Men"
-      //             },
-      //             "order_items.total_sale_price": {
-      //               "value": 411607.2599999957,
-      //               "rendered": "$411,607.26"
-      //             }
-      //           }
-      //         ]
-      //       }
-      //     ]
-      //   }
-      // ]
-
-
       series = []
       nested_data.forEach(function(tree, idx) {
         series = series.concat(formatNestedData(tree, idx))
       })
 
-      // series format:
-      // [
-      //   {
-      //     "name": "2016",
-      //     "id": "id_0",
-      //     "color": "#7cb5ec"
-      //   },
-      //   {
-      //     "name": "Women",
-      //     "id": "id_0_0",
-      //     "parent": "id_0",
-      //     "value": 602042.6999999805,
-      //     "rendered": "$602,042.70"
-      //   },
-      //   {
-      //     "name": "Men",
-      //     "id": "id_0_1",
-      //     "parent": "id_0",
-      //     "value": 512099.08999999426,
-      //     "rendered": "$512,099.09"
-      //   },
-      //   {
-      //     "name": "2017",
-      //     "id": "id_1",
-      //     "color": "#434348"
-      //   },
-      //   {
-      //     "name": "Women",
-      //     "id": "id_1_0",
-      //     "parent": "id_1",
-      //     "value": 481687.5599999917,
-      //     "rendered": "$481,687.56"
-      //   },
-      //   {
-      //     "name": "Men",
-      //     "id": "id_1_1",
-      //     "parent": "id_1",
-      //     "value": 411607.2599999957,
-      //     "rendered": "$411,607.26"
-      //   }
-      // ]
-
-      options = {
+      let options = {
         title: {text: config.chart_name},
         series: [{
           type: "treemap",
@@ -294,7 +169,7 @@
           }],
         }],
       }
-      var myChart = Highcharts.chart(element, options);
+      let myChart = Highcharts.chart(element, options);
     }
   };
   looker.plugins.visualizations.add(viz);

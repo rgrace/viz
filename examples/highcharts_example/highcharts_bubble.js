@@ -192,8 +192,7 @@
         }
       }
 
-      console.log(series)
-      options = {
+      let options = {
         chart: {
           type: "bubble",
           plotBorderWidth: 1,
@@ -230,7 +229,7 @@
         },
         series: series
       }
-      var myChart = Highcharts.chart(element, options);
+      let myChart = Highcharts.chart(element, options);
     }
   };
   looker.plugins.visualizations.add(viz);

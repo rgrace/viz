@@ -130,8 +130,6 @@
       let y = queryResponse.fields.dimensions[1]
       let z = queryResponse.fields.measures[0]
 
-      console.log("x,y,x", x,y,x)
-
       function aesthetic(datum, field) {
         let value = datum[field.name].value
         if (field.is_timeframe) {
@@ -249,7 +247,7 @@
         }]
       };
 
-      var myChart = Highcharts.chart(element, options);
+      let myChart = Highcharts.chart(element, options);
     }
   };
   looker.plugins.visualizations.add(viz);

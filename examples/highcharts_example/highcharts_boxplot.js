@@ -191,8 +191,7 @@
       if (categories.length > 0) {
         options["xAxis"]["categories"] = categories
       }
-      console.log(options)
-      var myChart = Highcharts.chart(element, options);
+      let myChart = Highcharts.chart(element, options);
     }
   };
   looker.plugins.visualizations.add(viz);
