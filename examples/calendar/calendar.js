@@ -233,7 +233,7 @@
         rect.filter(function(d) { return formattedData.has(d); })
             .attr("fill", function(d) { return color(formattedData.get(d)); })
           .append("title")
-            .text(function(d) { return d + ": " + formattedData.get(d); });
+            .text(function(d) { return d + ": " + formattedData.get(d); })
           .on("click", function(d) { console.log(d);})
           .on("mouseenter", function(d) {
             tooltip.style("visibility", "visible");
