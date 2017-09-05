@@ -1,5 +1,7 @@
-d3v4 = require("./d3v4");
-Highcharts = require("./Highcharts");
+if (typeof module !== 'undefined' && module.exports) {
+  global.d3v4 = require("./d3v4");
+  global.Highcharts = require("./Highcharts");
+}
 
 (function() {
   var d3 = d3v4;
