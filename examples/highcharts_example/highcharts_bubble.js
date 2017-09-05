@@ -1,3 +1,6 @@
+d3v4 = require("./d3v4");
+Highcharts = require("./Highcharts");
+
 (function() {
   var d3 = d3v4;
   var viz = {
