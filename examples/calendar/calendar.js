@@ -4,7 +4,9 @@
  * https://bl.ocks.org/mbostock/4063318
  */
 
-global.d3v4 = require("./d3v4");
+if (typeof module !== 'undefined' && module.exports) {
+  global.d3v4 = require("./d3v4");
+}
 
 (function() {
   var d3 = d3v4;
@@ -166,12 +168,6 @@ global.d3v4 = require("./d3v4");
         let minY = d3.min(series, function(d) { return d[valueKey]; })
         let maxY = d3.max(series, function(d) { return d[valueKey]; })
 
-        // element.offsetHeight / (maxYear + 1 - minYear)
-
-        // var width = 960 // element.offsetWidth
-        //     yearHeight = 136 // element.offsetHeight
-        //     cellSize = 17; // cell size
-
         var heightCellRatio = 9
             widthCellRatio = 55;
 
@@ -179,8 +175,6 @@ global.d3v4 = require("./d3v4");
             width = cellSize * widthCellRatio
             yearHeight = cellSize * heightCellRatio
             height = yearHeight * yearLength;
-
-        console.log(width, height, yearHeight, cellSize)
 
         var color = d3.scaleQuantize()
             .domain([minY, maxY])
@@ -196,7 +190,6 @@ global.d3v4 = require("./d3v4");
             .attr("height", yearHeight)
             .attr("year", function(d) { return d; })
           .append("g")
-            // .attr("transform", "translate(" + ((width - cellSize * 53) / 2) + "," + (yearHeight - cellSize * 7 - 1) + ")");
             .attr("transform", "translate(" + ((width - cellSize * 53) / 2) + ",0)");
 
         svg.append("text")
@@ -236,7 +229,6 @@ global.d3v4 = require("./d3v4");
             .attr("fill", function(d) { return color(formattedData.get(d)); })
           .append("title")
             .text(function(d) { return d + ": " + formattedData.get(d); })
-          .on("click", function(d) { console.log(d);})
           .on("mouseenter", function(d) {
             tooltip.style("visibility", "visible");
             d.style("fill-opacity", .15);
