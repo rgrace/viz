@@ -271,4 +271,3 @@ looker.plugins.visualizations.add({
     }
   }
 });
-

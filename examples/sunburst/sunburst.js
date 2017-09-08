@@ -36,13 +36,11 @@ looker.plugins.visualizations.add({
       .range(["#4aac8d", "#9061c9", "#64ac48", "#c75d9c", "#9a963f", "#6c8acd", "#c97f3e", "#cb5352"]);
 
     data.forEach(function(row) {
-      row.taxonomy = row[dimension].value.split("-");  
+      row.taxonomy = row[dimension].value.split("-");
     });
 
     var partition = d3.partition()
       .size([2 * Math.PI, radius * radius]);
-//          .value(function(d) { return 1; });
-//          .value(function(d) { return d.data[measure].value; });
 
     var arc = d3.arc()
       .startAngle(function(d) { return d.x0; })
@@ -58,12 +56,12 @@ looker.plugins.visualizations.add({
       .attr("transform", "translate(" + width / 2 + "," + (height / 2) + ")");
 
     var label = svg.append("text")
-      .attr("y", -height/2 + 20)  
+      .attr("y", -height/2 + 20)
       .attr("x", -width/2 + 20);
 
     var root = d3.hierarchy(burrow(data))
-          .sum(function(d) { return ("data" in d) ? d.data[measure].value : 0; });
-//      .sum(function(d) { return d.children.length > 0 ? 0 : 1; });
+      .sum(function(d) { return ("data" in d) ? d.data[measure].value : 0; });
+
     partition(root);
 
     svg.selectAll("path")
@@ -89,7 +87,7 @@ looker.plugins.visualizations.add({
           var ancestors = d.ancestors();
           svg.selectAll("path")
             .style("fill-opacity", function(p) {
-              return ancestors.indexOf(p) > -1 ? 1 : 0.15;  
+              return ancestors.indexOf(p) > -1 ? 1 : 0.15;
             });
         })
         .on("mouseleave", function(d) {
@@ -99,14 +97,6 @@ looker.plugins.visualizations.add({
               return 1 - d.depth*0.15;
             })
         });
-    
-    /*
-    console.log("burrowed", burrow(data));
-    console.log("root", root);
-    console.log("config", config);
-    console.log("data", data);
-    console.log("queryResponse", queryResponse);
-    */
 
     function burrow(table) {
       // create nested object
@@ -142,7 +132,7 @@ looker.plugins.visualizations.add({
         return arr;
       };
 
-      // use descend to create nested children arrys
+      // use descend to create nested children arrays
       return {
         name: "root",
         children: descend(obj, 1),
@@ -152,4 +142,3 @@ looker.plugins.visualizations.add({
 
   }
 });
-

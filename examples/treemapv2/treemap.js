@@ -29,7 +29,7 @@ looker.plugins.visualizations.add({
       .range(["#4aac8d", "#9061c9", "#64ac48", "#c75d9c", "#9a963f", "#6c8acd", "#c97f3e", "#cb5352"]);
 
     data.forEach(function(row) {
-      row.taxonomy = row[dimension].value.split("-");  
+      row.taxonomy = row[dimension].value.split("-");
     });
 
     var treemap = d3.treemap()
@@ -50,7 +50,7 @@ looker.plugins.visualizations.add({
       .attr("transform", "translate(0,16)");
 
     var breadcrumb = svg.append("text")
-      .attr("y", -5)  
+      .attr("y", -5)
       .attr("x", 4);
 
     var root = d3.hierarchy(burrow(data))
@@ -88,7 +88,7 @@ looker.plugins.visualizations.add({
               return null;
             })
         });
-    
+
     cell.append("rect")
       .attr("id", function(d,i) { return "rect-" + i; })
       .attr("width", function(d) { return d.x1 - d.x0; })
@@ -166,7 +166,7 @@ looker.plugins.visualizations.add({
         return arr;
       };
 
-      // use descend to create nested children arrys
+      // use descend to create nested children arrays
       return {
         name: "root",
         children: descend(obj, 1),
@@ -176,4 +176,3 @@ looker.plugins.visualizations.add({
 
   }
 });
-
