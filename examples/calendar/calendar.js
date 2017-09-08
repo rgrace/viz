@@ -136,8 +136,8 @@
 
       // {date: value,}
       var formattedData = d3.nest()
-        .key(function(d) { return d[dateKey]; })
-        .rollup(function(d) { return d[0][valueKey]; })
+        .key(function(d) { return d[x.name]; })
+        .rollup(function(d) { return d[0][y.name]; })
         .map(series);
 
       return formattedData
