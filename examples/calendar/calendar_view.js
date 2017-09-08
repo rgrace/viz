@@ -1,5 +1,5 @@
-var d3 = d3v4;
 function calendarView(element, formattedData) {
+  var d3 = d3v4;
 
   function monthPath(t0) {
     var t1 = new Date(t0.getFullYear(), t0.getMonth() + 1, 0),
