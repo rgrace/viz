@@ -4,10 +4,6 @@
  * https://bl.ocks.org/mbostock/4063318
  */
 
-if (typeof module !== 'undefined' && module.exports) {
-  global.d3v4 = require("./d3v4");
-}
-
 (function() {
   var d3 = d3v4;
   var viz = {
