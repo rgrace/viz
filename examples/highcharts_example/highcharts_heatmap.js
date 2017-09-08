@@ -1,8 +1,3 @@
-if (typeof module !== 'undefined' && module.exports) {
-  global.d3v4 = require("./d3v4");
-  global.Highcharts = require("./highcharts");
-}
-
 (function() {
   var d3 = d3v4;
   var viz = {
