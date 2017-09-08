@@ -121,7 +121,7 @@
       function aesthetic(datum, field) {
         let value = datum[field.name].value
         if (field.is_timeframe) {
-          let date = datum[x.name].value
+          let date = datum[field.name].value
           switch(field.field_group_variant) {
             case "Month":
             case "Quarter":
