@@ -4,11 +4,6 @@
     id: "pivot_table",
     label: "Pivot Table",
     options: {
-      // chartName: {
-      //   section: "Chart",
-      //   label: "Chart Name",
-      //   type: "string",
-      // },
       row_dimensions: {
         section: "Pivot Table",
         label: "Row Dimensions",
@@ -21,12 +16,6 @@
         type: "array",
         default: null,
         order: 1
-      },
-      agg_measures: {
-        section: "Pivot Table",
-        label: "Measures",
-        type: "array",
-        order: 2
       },
       aggregation: {
         section: "Pivot Table",
@@ -41,7 +30,7 @@
            {"Max": "max"},
            {"First": "first"},
            {"Last": "last"},
-           // quantile, extent, median
+           // TODO quantile, extent, median
         ],
         default: "sum",
         order: 3
@@ -128,7 +117,7 @@
       let measures = queryResponse.fields.measures
 
       let columnDefs = dimensions.map(function(f) {
-        let base = {
+        return {
           field: cleanFieldName(f.name),
           headerName: f.label_short,
           valueGetter: function(params) {
@@ -141,12 +130,12 @@
             let point = params.data[cleanFieldName(f.name)]
             return point.rendered ? point.rendered : point.value
           },
+          enableRowGroup: true,
+          enablePivot: true,
         }
-        base['rowGroup'] = true
-        return base
       })
       columnDefs = columnDefs.concat(measures.map(function(f) {
-        let base = {
+        return {
           field: cleanFieldName(f.name),
           headerName: f.label_short,
           valueGetter: function(params) {
@@ -159,9 +148,9 @@
             let point = params.data[cleanFieldName(f.name)]
             return point.rendered ? point.rendered : point.value
           },
+          enableValue: true,
+          aggFunc: config.aggregation,
         }
-        base['aggFunc'] = config.aggregation
-        return base
       }))
 
       var gridOptions = {
@@ -170,6 +159,8 @@
         enableSorting: true,
         showToolPanel: true,
         pivotMode: true,
+        rowGroupPanelShow: 'always',
+        toolPanelSuppressPivotMode: true,
         rowGroupColumns: config.row_dimensions,
         pivotColumns: config.col_dimensions,
       }
