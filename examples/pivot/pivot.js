@@ -163,6 +163,9 @@
         toolPanelSuppressPivotMode: true,
         rowGroupColumns: config.row_dimensions,
         pivotColumns: config.col_dimensions,
+        enableStatusBar: true,
+        alwaysShowStatusBar: false, //status bar can be be fixed
+        enableRangeSelection: true,
       }
 
       return gridOptions
