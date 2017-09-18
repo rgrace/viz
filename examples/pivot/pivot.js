@@ -3,40 +3,9 @@
   var viz = {
     id: "pivot_table",
     label: "Pivot Table",
-    options: {
-      row_dimensions: {
-        section: "Pivot Table",
-        label: "Row Dimensions",
-        type: "array",
-        order: 0,
-      },
-      col_dimensions: {
-        section: "Pivot Table",
-        label: "Column Dimensions",
-        type: "array",
-        default: null,
-        order: 1
-      },
-      aggregation: {
-        section: "Pivot Table",
-        label: "Aggregation",
-        type: "string",
-        display: "select",
-        values: [
-           {"Sum": "sum"},
-           {"Average": "avg"},
-           {"Count": "count"},
-           {"Min": "min"},
-           {"Max": "max"},
-           {"First": "first"},
-           {"Last": "last"},
-           // TODO quantile, extent, median
-        ],
-        default: "sum",
-        order: 3
-      },
-    },
+    options: {},
     grid: null,
+
     // Require proper data input
     handleErrors: function(data, resp) {
       var min_mes, max_mes, min_dim, max_dim, min_piv, max_piv;
@@ -100,9 +69,30 @@
 
     // Transform data
     prepare: function(data, config, queryResponse) {
-      //ag-grid doesn't like periods in their field names...
+      // ag-grid doesn't like periods in their field names...
       function cleanFieldName(name) {
         return name.split(".")[1]
+      }
+
+      function getFormatType(valueFormat) {
+        let format
+        switch(valueFormat) {
+          case "$#,##0":
+            format = d3.format("$,.0f"); break
+          case "$#,##0.00":
+            format = d3.format("$,.2f"); break
+          case "#,##0.00%":
+            format = d3.format(",.2%"); break
+          case "#,##0%":
+            format = d3.format(",.0%"); break
+          case "#,##0":
+            format = d3.format(",.0f"); break
+          case "#,##0.00":
+            format = d3.format(",.2f"); break
+          default:
+            format = function (x) { return x }; break
+        }
+        return format
       }
 
       let cleanData = data.map(function(row) {
@@ -115,9 +105,10 @@
 
       let dimensions = queryResponse.fields.dimensions
       let measures = queryResponse.fields.measures
+      let fields = dimensions.concat(measures)
 
-      let columnDefs = dimensions.map(function(f) {
-        return {
+      let columnDefs = fields.map(function(f) {
+        base = {
           field: cleanFieldName(f.name),
           headerName: f.label_short,
           valueGetter: function(params) {
@@ -126,32 +117,19 @@
             return point.value
           },
           valueFormatter: function(params) {
-            if (!params.data) {return }
-            let point = params.data[cleanFieldName(f.name)]
-            return point.rendered ? point.rendered : point.value
+            let format = getFormatType(f.value_format)
+            return format(params.value)
           },
-          enableRowGroup: true,
-          enablePivot: true,
         }
+        if (dimensions.indexOf(f) > -1) {
+          base['enableRowGroup'] = true
+          base['enablePivot'] = true
+        } else {
+          base['enableValue'] = true
+          base['aggFunc'] = 'sum'
+        }
+        return base
       })
-      columnDefs = columnDefs.concat(measures.map(function(f) {
-        return {
-          field: cleanFieldName(f.name),
-          headerName: f.label_short,
-          valueGetter: function(params) {
-            if (!params.data) {return }
-            let point = params.data[cleanFieldName(f.name)]
-            return point.value
-          },
-          valueFormatter: function(params) {
-            if (!params.data) {return }
-            let point = params.data[cleanFieldName(f.name)]
-            return point.rendered ? point.rendered : point.value
-          },
-          enableValue: true,
-          aggFunc: config.aggregation,
-        }
-      }))
 
       var gridOptions = {
         columnDefs: columnDefs,
@@ -161,8 +139,6 @@
         pivotMode: true,
         rowGroupPanelShow: 'always',
         toolPanelSuppressPivotMode: true,
-        rowGroupColumns: config.row_dimensions,
-        pivotColumns: config.col_dimensions,
         enableStatusBar: true,
         alwaysShowStatusBar: false, //status bar can be be fixed
         enableRangeSelection: true,
