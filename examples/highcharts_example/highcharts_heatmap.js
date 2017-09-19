@@ -1,8 +1,8 @@
 (function() {
   var d3 = d3v4;
   var viz = {
-    id: "highcharts_Heatmap",
-    label: "Highcharts Heatmap",
+    id: "highcharts_heatmap",
+    label: "Heatmap",
     options: {
       chartName: {
         section: "Chart",

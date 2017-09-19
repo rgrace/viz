@@ -2,7 +2,7 @@
   var d3 = d3v4;
   var viz = {
     id: "highcharts_arearange",
-    label: "Highcharts Arearange",
+    label: "Arearange",
     options: {
       chartName: {
         section: "Chart",

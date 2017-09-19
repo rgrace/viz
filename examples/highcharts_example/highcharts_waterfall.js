@@ -112,7 +112,7 @@
     update: function(data, element, config, queryResponse) {
       if (!this.handleErrors(data, queryResponse)) return;
 
-      function formatType(valueFormat, axis) {
+      function formatType(valueFormat, significantDigits) {
         if (typeof valueFormat != "string") {
           return function (x) {return x}
         }
@@ -130,8 +130,8 @@
         }
         splitValueFormat = valueFormat.split(".")
         format += '.'
-        if (!axis && splitValueFormat.length > 1) {
-          format += splitValueFormat[1].length
+        if (splitValueFormat.length > 1) {
+          format += d3.min(splitValueFormat[1].length, significantDigits)
         } else {
           format += 0
         }
@@ -187,7 +187,7 @@
           },
           labels: {
             formatter: function() {
-              return `<b>${formatType(y.value_format, true)(this.value)}</b>`
+              return `<b>${formatType(y.value_format, 0)(this.value)}</b>`
             }
           },
         },

@@ -2,7 +2,7 @@
   var d3 = d3v4;
   var viz = {
     id: "highcharts_boxplot",
-    label: "Highcharts Boxplot",
+    label: "Boxplot",
     options: {
       chartName: {
         section: "Chart",

@@ -2,7 +2,7 @@
   var d3 = d3v4;
   var viz = {
     id: "highcharts_histogram",
-    label: "Highcharts Histogram",
+    label: "Histogram",
     options: {
       chartName: {
         section: "Chart",

@@ -2,7 +2,7 @@
   var d3 = d3v4;
   var viz = {
     id: "highcharts_spiderweb",
-    label: "Highcharts Spiderweb",
+    label: "Spiderweb",
     options: {
       chartName: {
         section: "Chart",

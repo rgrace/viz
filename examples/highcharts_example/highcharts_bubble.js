@@ -2,7 +2,7 @@
   var d3 = d3v4;
   var viz = {
     id: "highcharts_bubble",
-    label: "Highcharts Bubble",
+    label: "Bubble",
     options: {
       chartName: {
         section: "Chart",
