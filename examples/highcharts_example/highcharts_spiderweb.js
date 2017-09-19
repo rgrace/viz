@@ -146,6 +146,9 @@
       })
 
       let options = {
+        credits: {
+          enabled: false
+        },
         chart: {
           polar: true,
           type: 'line'

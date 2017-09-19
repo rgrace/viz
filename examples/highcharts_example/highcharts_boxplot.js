@@ -165,6 +165,9 @@
       // [[1.5,25,44.4,72.98,999],[0.02,21.99,39.99,79,903]]
 
       let options = {
+          credits: {
+            enabled: false
+          },
           chart: {type: "boxplot"},
           title: {text: config.chartName},
           legend: {enabled: false},

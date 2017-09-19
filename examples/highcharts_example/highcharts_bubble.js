@@ -193,6 +193,9 @@
       }
 
       let options = {
+        credits: {
+          enabled: false
+        },
         chart: {
           type: "bubble",
           plotBorderWidth: 1,

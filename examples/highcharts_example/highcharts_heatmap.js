@@ -198,6 +198,9 @@
       let series = data.map(aesthetics)
 
       let options = {
+        credits: {
+          enabled: false
+        },
         chart: {
           type: 'heatmap',
           plotBorderWidth: 1,

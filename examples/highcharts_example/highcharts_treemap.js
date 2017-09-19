@@ -149,6 +149,9 @@
       })
 
       let options = {
+        credits: {
+          enabled: false
+        },
         title: {text: config.chart_name},
         series: [{
           type: "treemap",

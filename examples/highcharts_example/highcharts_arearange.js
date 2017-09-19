@@ -163,6 +163,9 @@
       })
 
       let options = {
+          credits: {
+            enabled: false
+          },
           chart: {
             type: "arearange",
             zoomType: "x"

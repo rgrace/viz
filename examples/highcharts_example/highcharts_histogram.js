@@ -184,6 +184,9 @@
       }
 
       let options = {
+        credits: {
+          enabled: false
+        },
         chart: {type: 'column'},
         title: {text: config.chartName},
         legend: {enabled: false},
