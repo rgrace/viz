@@ -58,7 +58,7 @@
         this.clearErrors("pivot-req");
       }
 
-      if (resp.fields.dimensions.length > max_dim) {
+      if (resp.fields.dimension_like.length > max_dim) {
         this.addError({
           group: "dim-req",
           title: "Incompatible Data",
@@ -69,7 +69,7 @@
         this.clearErrors("dim-req");
       }
 
-      if (resp.fields.dimensions.length < min_dim) {
+      if (resp.fields.dimension_like.length < min_dim) {
         this.addError({
           group: "dim-req",
           title: "Incompatible Data",
@@ -148,8 +148,8 @@
         return a.slice(1).map(function(n, i) { return n - a[i]; });
       }
 
-      let x = queryResponse.fields.dimensions[0]
-      let y = queryResponse.fields.measures[0]
+      let x = queryResponse.fields.dimension_like[0]
+      let y = queryResponse.fields.measure_like[0]
       let xCategories = data.map(function(row) {return row[x.name].value})
       let seriesData = data.map(function(row) {return row[y.name].value})
 
@@ -183,7 +183,7 @@
         },
         yAxis: {
           title: {
-            text: y.label_short
+            text: y.label_short ? y.label_short : y.label
           },
           labels: {
             formatter: function() {

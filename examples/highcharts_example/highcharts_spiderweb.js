@@ -42,7 +42,7 @@
         this.clearErrors("pivot-req");
       }
 
-      if (resp.fields.dimensions.length > max_dim) {
+      if (resp.fields.dimension_like.length > max_dim) {
         this.addError({
           group: "dim-req",
           title: "Incompatible Data",
@@ -53,7 +53,7 @@
         this.clearErrors("dim-req");
       }
 
-      if (resp.fields.dimensions.length < min_dim) {
+      if (resp.fields.dimension_like.length < min_dim) {
         this.addError({
           group: "dim-req",
           title: "Incompatible Data",
@@ -125,14 +125,14 @@
         return d3.format(format)
       }
 
-      let x = queryResponse.fields.dimensions[0]
-      let measures = queryResponse.fields.measures
+      let x = queryResponse.fields.dimension_like[0]
+      let measures = queryResponse.fields.measure_like
       let xCategories = data.map(function(row) {return row[x.name].value})
 
       let series = measures.map(function(m) {
         let format = formatType(m.value_format)
         return {
-          name: m.label_short,
+          name: m.label_short ? m.label_short : m.label,
           pointPlacement: 'on',
           data: data.map(function(row) {
             return row[m.name].value

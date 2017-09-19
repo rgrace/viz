@@ -50,7 +50,7 @@
         this.clearErrors("pivot-req");
       }
 
-      if (resp.fields.dimensions.length > max_dim) {
+      if (resp.fields.dimension_like.length > max_dim) {
         this.addError({
           group: "dim-req",
           title: "Incompatible Data",
@@ -61,7 +61,7 @@
         this.clearErrors("dim-req");
       }
 
-      if (resp.fields.dimensions.length < min_dim) {
+      if (resp.fields.dimension_like.length < min_dim) {
         this.addError({
           group: "dim-req",
           title: "Incompatible Data",
@@ -94,7 +94,7 @@
         this.clearErrors("mes-req");
       }
 
-      if (!resp.fields.dimensions[0].is_numeric) {
+      if (!resp.fields.dimension_like[0].is_numeric) {
         this.addError({
           group: "dim-req",
           title: "Incompatible Data",
@@ -115,8 +115,8 @@
     update: function(data, element, config, queryResponse) {
       if (!this.handleErrors(data, queryResponse)) return;
 
-      let x = queryResponse.fields.dimensions[0]
-      let y = queryResponse.fields.measures[0]
+      let x = queryResponse.fields.dimension_like[0]
+      let y = queryResponse.fields.measure_like[0]
 
       function aesthetic(datum, field) {
         let value = datum[field.name].value
@@ -194,7 +194,7 @@
           gridLineWidth: 1,
           type: x.is_timeframe ? "datetime" : x.is_numeric ? "linear" : "category",
           title: {
-            text: config.xAxisName ? config.xAxisName : x.label_short
+            text: config.xAxisName ? config.xAxisName : x.label_short ? x.label_short : x.label
           },
         },
         yAxis: [{
@@ -203,7 +203,7 @@
           }
         }],
         series: [{
-          name: x.label_short,
+          name: x.label_short ? x.label_short : x.label,
           type: 'column',
           data: binnedData,
           pointPadding: 0,

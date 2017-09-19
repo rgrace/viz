@@ -70,7 +70,7 @@
         this.clearErrors("pivot-req");
       }
 
-      if (resp.fields.dimensions.length > max_dim) {
+      if (resp.fields.dimension_like.length > max_dim) {
         this.addError({
           group: "dim-req",
           title: "Incompatible Data",
@@ -81,7 +81,7 @@
         this.clearErrors("dim-req");
       }
 
-      if (resp.fields.dimensions.length < min_dim) {
+      if (resp.fields.dimension_like.length < min_dim) {
         this.addError({
           group: "dim-req",
           title: "Incompatible Data",
@@ -126,8 +126,8 @@
     update: function(data, element, config, queryResponse) {
       if (!this.handleErrors(data, queryResponse)) return;
 
-      let dim = queryResponse.fields.dimensions[0]
-      let measures = queryResponse.fields.measures
+      let dim = queryResponse.fields.dimension_like[0]
+      let measures = queryResponse.fields.measure_like
 
       let categories = []
       let series = []
@@ -176,7 +176,7 @@
           xAxis: {
             type: dim.is_timeframe ? "datetime" : null,
             title: {
-              text: config.xAxisName ? config.xAxisName : dim.label
+              text: config.xAxisName ? config.xAxisName : dim.label_short ? dim.label_short : dim.label
             }
           },
 

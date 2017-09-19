@@ -2,7 +2,7 @@
   var d3 = d3v4;
   var viz = {
     id: "highcharts_treemap",
-    label: "Highcharts Treemap",
+    label: "Treemap",
     options: {
       chart_name: {
         label: "Chart Name",
@@ -41,7 +41,7 @@
         this.clearErrors("pivot-req");
       }
 
-      if (resp.fields.dimensions.length > max_dim) {
+      if (resp.fields.dimension_like.length > max_dim) {
         this.addError({
           group: "dim-req",
           title: "Incompatible Data",
@@ -52,7 +52,7 @@
         this.clearErrors("dim-req");
       }
 
-      if (resp.fields.dimensions.length < min_dim) {
+      if (resp.fields.dimension_like.length < min_dim) {
         this.addError({
           group: "dim-req",
           title: "Incompatible Data",
@@ -95,8 +95,8 @@
     update: function(data, element, config, queryResponse) {
       if (!this.handleErrors(data, queryResponse)) return;
 
-      let dims = queryResponse.fields.dimensions
-      let measure = queryResponse.fields.measures[0]
+      let dims = queryResponse.fields.dimension_like
+      let measure = queryResponse.fields.measure_like[0]
 
       // walks tree to flatten and pull right fields
       function formatNestedData(tree, idx, parent) {

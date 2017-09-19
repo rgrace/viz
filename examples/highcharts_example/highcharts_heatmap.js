@@ -70,7 +70,7 @@
         this.clearErrors("pivot-req");
       }
 
-      if (resp.fields.dimensions.length > max_dim) {
+      if (resp.fields.dimension_like.length > max_dim) {
         this.addError({
           group: "dim-req",
           title: "Incompatible Data",
@@ -81,7 +81,7 @@
         this.clearErrors("dim-req");
       }
 
-      if (resp.fields.dimensions.length < min_dim) {
+      if (resp.fields.dimension_like.length < min_dim) {
         this.addError({
           group: "dim-req",
           title: "Incompatible Data",
@@ -126,9 +126,9 @@
     update: function(data, element, config, queryResponse) {
       if (!this.handleErrors(data, queryResponse)) return;
 
-      let x = queryResponse.fields.dimensions[0]
-      let y = queryResponse.fields.dimensions[1]
-      let z = queryResponse.fields.measures[0]
+      let x = queryResponse.fields.dimension_like[0]
+      let y = queryResponse.fields.dimension_like[1]
+      let z = queryResponse.fields.measure_like[0]
 
       function aesthetic(datum, field) {
         let value = datum[field.name].value
@@ -210,7 +210,7 @@
         xAxis: {
           type: x.is_timeframe ? "datetime" : x.is_numeric ? "linear" : "category",
           title: {
-            text: config.xAxisName ? config.xAxisName : x.label_short
+            text: config.xAxisName ? config.xAxisName : x.label_short ? x.label_short : x.label
           },
           min: xExtent.min,
           max: xExtent.max,
@@ -219,7 +219,7 @@
         yAxis: {
           type: y.is_timeframe ? "datetime" : y.is_numeric ? "linear" : "category",
           title: {
-            text: config.yAxisName ? config.yAxisName : y.label_short
+            text: config.yAxisName ? config.yAxisName : y.label_short ? y.label_short : y.label
           },
           min: yExtent.min,
           max: yExtent.max,
@@ -239,7 +239,7 @@
             color: '#000000'
           },
           tooltip: {
-            headerFormat: z.label_short + '<br/>',
+            headerFormat: z.label_short ? z.label_short : z.label  + '<br/>',
             pointFormatter: function() {
               let x = xExtent.fieldScale ? xExtent.categories[this.x] : this.x
               let y = yExtent.fieldScale ? yExtent.categories[this.y] : this.y
