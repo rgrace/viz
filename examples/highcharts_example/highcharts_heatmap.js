@@ -21,22 +21,6 @@
         type: "string",
         placeholder: "Provide an axis name ..."
       },
-      yAxisMinValue: {
-        label: "Min value",
-        default: null,
-        section: "Y",
-        type: "number",
-        placeholder: "Any number",
-        display_size: "half",
-      },
-      yAxisMaxValue: {
-        label: "Max value",
-        default: null,
-        section: "Y",
-        type: "number",
-        placeholder: "Any number",
-        display_size: "half",
-      },
     },
     // require proper data input
     handleErrors: function(data, resp) {
