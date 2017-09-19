@@ -2,7 +2,7 @@
   var d3 = d3v4;
   var viz = {
     id: "highcharts_waterfall",
-    label: "Highcharts Waterfall",
+    label: "Waterfall",
     options: {
       chartName: {
         section: "Chart",
@@ -131,7 +131,7 @@
         splitValueFormat = valueFormat.split(".")
         format += '.'
         if (splitValueFormat.length > 1) {
-          format += d3.min(splitValueFormat[1].length, significantDigits)
+          format += d3.min([splitValueFormat[1].length, significantDigits])
         } else {
           format += 0
         }
