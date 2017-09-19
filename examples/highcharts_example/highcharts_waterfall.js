@@ -9,6 +9,22 @@
         label: "Chart Name",
         type: "string",
       },
+      finalLabelOn: {
+        section: "Waterfall",
+        label: "Final Label On",
+        type: "boolean",
+        default: true,
+        display_size: "half",
+        order: 0,
+      },
+      finalLabel: {
+        section: "Waterfall",
+        label: "Final Label",
+        type: "string",
+        default: "Final",
+        display_size: "half",
+        order: 1,
+      },
     },
     // require proper data input
     handleErrors: function(data, resp) {
@@ -96,7 +112,7 @@
     update: function(data, element, config, queryResponse) {
       if (!this.handleErrors(data, queryResponse)) return;
 
-      function formatType(valueFormat) {
+      function formatType(valueFormat, axis) {
         if (typeof valueFormat != "string") {
           return function (x) {return x}
         }
@@ -114,8 +130,11 @@
         }
         splitValueFormat = valueFormat.split(".")
         format += '.'
-        format += splitValueFormat.length > 1 ? splitValueFormat[1].length : 0
-
+        if (!axis && splitValueFormat.length > 1) {
+          format += splitValueFormat[1].length
+        } else {
+          format += 0
+        }
         switch(valueFormat.slice(-1)) {
           case '%':
             format += '%'; break
@@ -138,9 +157,14 @@
       let upColor = "#008000"
       let downColor = "#FF0000"
       // first element, deltas
-      let deltas = [{y: seriesData[0], color: totalColor}].concat(diff(seriesData))
+      let deltas = [{y: seriesData[0], color: totalColor}]
+        .concat(diff(seriesData))
 
-      let format = formatType(y.value_format)
+      if (config.finalLabelOn) {
+        xCategories.push(config.finalLabel)
+        deltas.push({y: seriesData[seriesData.length - 1], color: totalColor, isSum: true,})
+      }
+
       let series = [{
         upColor: upColor,
         color: downColor,
@@ -163,13 +187,13 @@
           },
           labels: {
             formatter: function() {
-              return `<b>${format(this.value)}</b>`
+              return `<b>${formatType(y.value_format, true)(this.value)}</b>`
             }
           },
         },
         tooltip: {
           pointFormatter: function() {
-            return `<b>${format(this.y)}</b>`
+            return `<b>${formatType(y.value_format)(this.y)}</b>`
           }
         },
         series: series,
