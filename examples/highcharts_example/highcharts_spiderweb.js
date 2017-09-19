@@ -95,28 +95,34 @@
     // Render in response to the data or settings changing
     update: function(data, element, config, queryResponse) {
       if (!this.handleErrors(data, queryResponse)) return;
-      console.log(data, config, queryResponse)
 
       function formatType(valueFormat) {
-        console.log("formatType", valueFormat)
-        let format
-        switch(valueFormat) {
-          case "$#,##0":
-            format = d3.format("$,.0f"); break
-          case "$#,##0.00":
-            format = d3.format("$,.2f"); break
-          case "#,##0.00%":
-            format = d3.format(",.2%"); break
-          case "#,##0%":
-            format = d3.format(",.0%"); break
-          case "#,##0":
-            format = d3.format(",.0f"); break
-          case "#,##0.00":
-            format = d3.format(",.2f"); break
-          default:
-            format = function (x) { return x }; break
+        if (typeof valueFormat != "string") {
+          return function (x) {return x}
         }
-        return format
+        let format = ""
+        switch (valueFormat.charAt(0)) {
+          case '$':
+            format += '$'; break
+          case '£':
+            format += '£'; break
+          case '€':
+            format += '€'; break
+        }
+        if (valueFormat.indexOf(',') > -1) {
+          format += ','
+        }
+        splitValueFormat = valueFormat.split(".")
+        format += '.'
+        format += splitValueFormat.length > 1 ? splitValueFormat[1].length : 0
+
+        switch(valueFormat.slice(-1)) {
+          case '%':
+            format += '%'; break
+          case '0':
+            format += 'f'; break
+        }
+        return d3.format(format)
       }
 
       let x = queryResponse.fields.dimensions[0]
@@ -133,7 +139,6 @@
           }),
           tooltip: {
             pointFormatter: function() {
-              console.log(this)
               return `<span style="color:${this.series.color}">${this.series.name}: <b>${format(this.y)}</b><br/>`
             }
           },
@@ -153,15 +158,14 @@
           gridLineInterpolation: 'polygon',
           min: 0,
           labels: {
-              format: '{value}'
+            format: '{value}'
           },
         },
-        // tooltip: {
-        //   shared: true,
-        // },
+        tooltip: {
+          shared: true,
+        },
         series: series,
       }
-      console.log(options)
       let myChart = Highcharts.chart(element, options);
     }
   };
