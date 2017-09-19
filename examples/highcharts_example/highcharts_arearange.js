@@ -96,8 +96,7 @@
         this.addError({
           group: "mes-req",
           title: "Incompatible Data",
-          message: "You need " + min_mes +" to "+ max_mes +" measures " +
-            "requires a minimum, lower quartile (Q1), median (Q2), upper quartile (Q3), and maximum"
+          message: "You need " + min_mes +" to "+ max_mes +" measures "
         });
         return false;
       } else {
@@ -108,8 +107,7 @@
         this.addError({
           group: "mes-req",
           title: "Incompatible Data",
-          message: "You need " + min_mes +" to "+ max_mes +" measures " +
-            "requires a minimum, lower quartile (Q1), median (Q2), upper quartile (Q3), and maximum"
+          message: "You need " + min_mes +" to "+ max_mes +" measures "
         });
         return false;
       } else {
