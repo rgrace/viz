@@ -160,6 +160,27 @@
         series.push(point)
       })
 
+      function unique(value, index, self) {
+        return self.indexOf(value) === index;
+      }
+
+      let field_group_labels = measures.map(function(m) { return m.field_group_label})
+      let field_group_label = field_group_labels.filter(unique)[0] // first. yolo
+
+      let xAxisLabel = config.xAxisName ?
+        config.xAxisName :
+        dim.label_short ?
+          dim.label_short :
+          dim.label
+
+      let yAxisLabel = config.yAxisName ?
+        config.yAxisName :
+        field_group_label ?
+          field_group_label :
+          measures[0].label_short ?
+            measures[0].label_short :
+            measures[0].label
+
       let options = {
           credits: {
             enabled: false
@@ -174,7 +195,7 @@
           xAxis: {
             type: dim.is_timeframe ? "datetime" : null,
             title: {
-              text: config.xAxisName ? config.xAxisName : dim.label_short ? dim.label_short : dim.label
+              text: xAxisLabel
             }
           },
 
@@ -182,17 +203,18 @@
             min: config.yAxisMinValue,
             max: config.yAxisMaxValue,
             title: {
-              text: config.yAxisName
+              text: yAxisLabel,
             }
           },
 
           tooltip: {
-              crosshairs: true,
-              shared: true,
+            crosshairs: true,
+            shared: true,
           },
 
           series: [{
-              data: series
+            name: yAxisLabel,
+            data: series,
           }],
       };
       if (categories.length > 0) {

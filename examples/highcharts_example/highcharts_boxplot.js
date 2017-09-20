@@ -125,6 +125,7 @@
     // Render in response to the data or settings changing
     update: function(data, element, config, queryResponse) {
       if (!this.handleErrors(data, queryResponse)) return;
+      console.log(data, config, queryResponse)
 
       let dim = queryResponse.fields.dimension_like[0]
       let measures = queryResponse.fields.measure_like
@@ -164,6 +165,27 @@
       // series format:
       // [[1.5,25,44.4,72.98,999],[0.02,21.99,39.99,79,903]]
 
+      function unique(value, index, self) {
+        return self.indexOf(value) === index;
+      }
+
+      let field_group_labels = measures.map(function(m) { return m.field_group_label})
+      let field_group_label = field_group_labels.filter(unique)[0] // first. yolo
+
+      let xAxisLabel = config.xAxisName ?
+        config.xAxisName :
+        dim.label_short ?
+          dim.label_short :
+          dim.label
+
+      let yAxisLabel = config.yAxisName ?
+        config.yAxisName :
+        field_group_label ?
+          field_group_label :
+          measures[0].label_short ?
+            measures[0].label_short :
+            measures[0].label
+
       let options = {
           credits: {
             enabled: false
@@ -175,7 +197,7 @@
           xAxis: {
             type: dim.is_timeframe ? "datetime" : null,
             title: {
-              text: config.xAxisName ? config.xAxisName : dim.label_short ? dim.label_short : dim.label
+              text: xAxisLabel,
             }
           },
 
@@ -183,12 +205,13 @@
             min: config.yAxisMinValue,
             max: config.yAxisMaxValue,
             title: {
-              text: config.yAxisName
+              text: yAxisLabel,
             }
           },
 
           series: [{
-              data: series,
+            name: yAxisLabel,
+            data: series,
           },]
       };
       if (categories.length > 0) {
