@@ -125,7 +125,6 @@
     // Render in response to the data or settings changing
     update: function(data, element, config, queryResponse) {
       if (!this.handleErrors(data, queryResponse)) return;
-      console.log(data, config, queryResponse)
 
       let dim = queryResponse.fields.dimension_like[0]
       let measures = queryResponse.fields.measure_like
