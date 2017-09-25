@@ -1,8 +1,11 @@
 #  Chord
 
+
+![](chord.png)
+
 This diagram allows you to show affinity between two dimensions. This is helpful for showing customer paths, market basket analysis, among others.
 
-![](chord.jpg)
+![](chord.mov)
 
 **How it works**
 

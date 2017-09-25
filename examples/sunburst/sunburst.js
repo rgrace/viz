@@ -33,7 +33,7 @@ looker.plugins.visualizations.add({
           .range([0, radius]);
 
     var color = d3.scaleOrdinal()
-      .range(["#4aac8d", "#9061c9", "#64ac48", "#c75d9c", "#9a963f", "#6c8acd", "#c97f3e", "#cb5352"]);
+      .range(["#dd3333", "#80ce5d", "#f78131", "#369dc1", "#c572d3", "#36c1b3", "#b57052", "#ed69af"]);
 
     data.forEach(function(row) {
       row.taxonomy = row[dimension].value.split("-");
@@ -41,6 +41,8 @@ looker.plugins.visualizations.add({
 
     var partition = d3.partition()
       .size([2 * Math.PI, radius * radius]);
+//          .value(function(d) { return 1; });
+//          .value(function(d) { return d.data[measure].value; });
 
     var arc = d3.arc()
       .startAngle(function(d) { return d.x0; })
@@ -60,8 +62,8 @@ looker.plugins.visualizations.add({
       .attr("x", -width/2 + 20);
 
     var root = d3.hierarchy(burrow(data))
-      .sum(function(d) { return ("data" in d) ? d.data[measure].value : 0; });
-
+          .sum(function(d) { return ("data" in d) ? d.data[measure].value : 0; });
+//      .sum(function(d) { return d.children.length > 0 ? 0 : 1; });
     partition(root);
 
     svg.selectAll("path")
@@ -98,6 +100,14 @@ looker.plugins.visualizations.add({
             })
         });
 
+    /*
+    console.log("burrowed", burrow(data));
+    console.log("root", root);
+    console.log("config", config);
+    console.log("data", data);
+    console.log("queryResponse", queryResponse);
+    */
+
     function burrow(table) {
       // create nested object
       var obj = {};
@@ -132,7 +142,7 @@ looker.plugins.visualizations.add({
         return arr;
       };
 
-      // use descend to create nested children arrays
+      // use descend to create nested children arrys
       return {
         name: "root",
         children: descend(obj, 1),
@@ -142,3 +152,4 @@ looker.plugins.visualizations.add({
 
   }
 });
+
