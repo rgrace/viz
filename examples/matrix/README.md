@@ -3,7 +3,7 @@
 
 ![](matrix.png)
 
-This diagram creates a reorderable matrix heatmap to display correlations between dimensions on a shared measure.
+This diagram creates a reorderable matrix [heatmap](https://en.wikipedia.org/wiki/Heat_map) to display correlations between dimensions on a shared measure.
 
 ![](matrix.mov)
 
