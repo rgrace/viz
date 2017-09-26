@@ -131,7 +131,8 @@
         return base
       })
 
-      var gridOptions = {
+      let vis = this
+      let gridOptions = {
         columnDefs: columnDefs,
         rowData: cleanData,
         enableSorting: true,
@@ -142,8 +143,16 @@
         enableStatusBar: true,
         alwaysShowStatusBar: false, //status bar can be be fixed
         enableRangeSelection: true,
+        onColumnRowGroupChanged: function(event) {
+          vis.trigger("updateConfig", [{pivotState: event.columnApi.getColumnState()}])
+        },
+        onColumnValueChanged: function(event) {
+          vis.trigger("updateConfig", [{pivotState: event.columnApi.getColumnState()}])
+        },
+        onColumnPivotChanged: function(event) {
+          vis.trigger("updateConfig", [{pivotState: event.columnApi.getColumnState()}])
+        },
       }
-
       return gridOptions
     },
 
@@ -152,8 +161,11 @@
       if (!this.handleErrors(data, queryResponse)) return;
       if (this.grid) this.grid.destroy()
 
-      var gridOptions = this.prepare(data, config, queryResponse)
+      let gridOptions = this.prepare(data, config, queryResponse)
       this.grid = new agGrid.Grid(element, gridOptions)
+      if (config.pivotState) {
+        gridOptions.columnApi.setColumnState(config.pivotState)
+      }
       return this.grid
     }
   }
