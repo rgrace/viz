@@ -65,6 +65,7 @@
     // Set up the initial state of the visualization
     create: function(element, config) {
       $(element).addClass("ag-fresh")
+      if (this.grid) this.grid.destroy()
     },
 
     // Transform data
@@ -159,7 +160,6 @@
     // Render in response to the data or settings changing
     update: function(data, element, config, queryResponse) {
       if (!this.handleErrors(data, queryResponse)) return;
-      if (this.grid) this.grid.destroy()
 
       let gridOptions = this.prepare(data, config, queryResponse)
       this.grid = new agGrid.Grid(element, gridOptions)
