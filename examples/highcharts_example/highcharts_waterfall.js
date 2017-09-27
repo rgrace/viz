@@ -1,12 +1,29 @@
 (function() {
   var d3 = d3v4;
   var viz = {
-    id: "highcharts_treemap",
-    label: "Treemap",
+    id: "highcharts_waterfall",
+    label: "Waterfall",
     options: {
-      chart_name: {
+      chartName: {
+        section: "Chart",
         label: "Chart Name",
         type: "string",
+      },
+      finalLabelOn: {
+        section: "Waterfall",
+        label: "Final Label On",
+        type: "boolean",
+        default: true,
+        display_size: "half",
+        order: 0,
+      },
+      finalLabel: {
+        section: "Waterfall",
+        label: "Final Label",
+        type: "string",
+        default: "Final",
+        display_size: "half",
+        order: 1,
       },
     },
     // require proper data input
@@ -15,7 +32,7 @@
       min_mes = 1
       max_mes = 1
       min_dim = 1
-      max_dim = 5
+      max_dim = 1
       min_piv = 0
       max_piv = 0
 
@@ -95,7 +112,7 @@
     update: function(data, element, config, queryResponse) {
       if (!this.handleErrors(data, queryResponse)) return;
 
-      function formatType(valueFormat) {
+      function formatType(valueFormat, significantDigits) {
         if (typeof valueFormat != "string") {
           return function (x) {return x}
         }
@@ -113,8 +130,11 @@
         }
         splitValueFormat = valueFormat.split(".")
         format += '.'
-        format += splitValueFormat.length > 1 ? splitValueFormat[1].length : 0
-
+        if (splitValueFormat.length > 1) {
+          format += d3.min([splitValueFormat[1].length, significantDigits])
+        } else {
+          format += 0
+        }
         switch(valueFormat.slice(-1)) {
           case '%':
             format += '%'; break
@@ -124,81 +144,59 @@
         return d3.format(format)
       }
 
-      let dims = queryResponse.fields.dimension_like
-      let measure = queryResponse.fields.measure_like[0]
-
-
-      let mFormat = formatType(measure.value_format)
-
-      // walks tree to flatten and pull right fields
-      function formatNestedData(tree, idx, parent) {
-        let datum = {
-          name: tree["key"],
-        }
-        if (parent == null) {
-          datum["id"] = "id_" + idx
-          datum["color"] = Highcharts.getOptions().colors[idx]
-        } else {
-          datum["id"] = [parent.id, idx].join("_")
-          datum["parent"] = parent.id
-        }
-        let formatted_data = []
-        if (tree.hasOwnProperty("values") && tree["values"][0].hasOwnProperty(measure.name)) {
-          let rawDatum = tree["values"][0][measure.name]
-          datum["value"] = rawDatum["value"]
-          formatted_data = [datum]
-        } else {
-          subdata = []
-
-          tree["values"].forEach(function(subtree, i) {
-            subdata = subdata.concat(formatNestedData(subtree, i, datum))
-          })
-          formatted_data = [datum]
-          formatted_data = formatted_data.concat(subdata)
-        }
-        return formatted_data
+      function diff(a) {
+        return a.slice(1).map(function(n, i) { return n - a[i]; });
       }
 
-      let my_nest = d3.nest()
-      // group by each dimension
-      dims.forEach(function(dim) {
-        my_nest = my_nest.key(function(d) { return d[dim.name]["value"]; })
-      })
-      nested_data = my_nest
-        .entries(data)
+      let x = queryResponse.fields.dimension_like[0]
+      let y = queryResponse.fields.measure_like[0]
+      let xCategories = data.map(function(row) {return row[x.name].value})
+      let seriesData = data.map(function(row) {return row[y.name].value})
 
-      series = []
-      nested_data.forEach(function(tree, idx) {
-        series = series.concat(formatNestedData(tree, idx))
-      })
+      let totalColor = "#5245ed"
+      let upColor = "#008000"
+      let downColor = "#FF0000"
+      // first element, deltas
+      let deltas = [{y: seriesData[0], color: totalColor}]
+        .concat(diff(seriesData))
+
+      if (config.finalLabelOn) {
+        xCategories.push(config.finalLabel)
+        deltas.push({y: seriesData[seriesData.length - 1], color: totalColor, isSum: true,})
+      }
+
+      let series = [{
+        upColor: upColor,
+        color: downColor,
+        data: deltas,
+      }]
 
       let options = {
         credits: {
           enabled: false
         },
-        title: {text: config.chart_name},
-        series: [{
-          type: "treemap",
-          data: series,
-          tooltip: {
-            pointFormatter: function() {=
-              return `<span style="color:${this.series.color}">\u25CF</span> ${this.name}: <b>${mFormat(this.value)}</b><br/>`
-            },
+        chart: {type: 'waterfall'},
+        title: {text: config.chartName},
+        legend: {enabled: false},
+        xAxis: {
+          categories: xCategories,
+        },
+        yAxis: {
+          title: {
+            text: y.label_short ? y.label_short : y.label
           },
-          layoutAlgorithm: 'squarified',
-          allowDrillToNode: true,
-          dataLabels: {
-            enabled: false
+          labels: {
+            formatter: function() {
+              return `<b>${formatType(y.value_format, 0)(this.value)}</b>`
+            }
           },
-          levelIsConstant: false,
-          levels: [{
-              level: 1,
-              dataLabels: {
-                enabled: true,
-              },
-              borderWidth: 3
-          }],
-        }],
+        },
+        tooltip: {
+          pointFormatter: function() {
+            return `<b>${formatType(y.value_format)(this.y)}</b>`
+          }
+        },
+        series: series,
       }
       let myChart = Highcharts.chart(element, options);
     }

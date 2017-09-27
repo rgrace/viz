@@ -2,7 +2,7 @@
   var d3 = d3v4;
   var viz = {
     id: "highcharts_bubble",
-    label: "Highcharts Bubble",
+    label: "Bubble",
     options: {
       chartName: {
         section: "Chart",
@@ -70,7 +70,7 @@
         this.clearErrors("pivot-req");
       }
 
-      if (resp.fields.dimensions.length > max_dim) {
+      if (resp.fields.dimension_like.length > max_dim) {
         this.addError({
           group: "dim-req",
           title: "Incompatible Data",
@@ -81,7 +81,7 @@
         this.clearErrors("dim-req");
       }
 
-      if (resp.fields.dimensions.length < min_dim) {
+      if (resp.fields.dimension_like.length < min_dim) {
         this.addError({
           group: "dim-req",
           title: "Incompatible Data",
@@ -118,14 +118,16 @@
       return true;
     },
     // Set up the initial state of the visualization
-    create: function(element, config) {},
+    create: function(element, config) {
+      element.innerHTML = ""
+    },
 
     // Render in response to the data or settings changing
     update: function(data, element, config, queryResponse) {
       if (!this.handleErrors(data, queryResponse)) return;
-      let x = queryResponse.fields.dimensions[0]
-      let y = queryResponse.fields.measures[0]
-      let z = queryResponse.fields.measures.length > 1 ? queryResponse.fields.measures[1] : null
+      let x = queryResponse.fields.dimension_like[0]
+      let y = queryResponse.fields.measure_like[0]
+      let z = queryResponse.fields.measure_like.length > 1 ? queryResponse.fields.measure_like[1] : null
 
       var fieldMap = function(p, idx, key, field, pivot) {
         let rawDatum = p[field.name]
@@ -173,7 +175,7 @@
           tooltip: {
             pointFormat: z ? "{point.x_rendered}: {point.y_rendered}, {point.z_rendered}" : "{point.x_rendered}: {point.y_rendered}",
           },
-          name: y.label_short,
+          name: y.label_short ? y.label_short : y.label,
         }]
       } else {
         series = []
@@ -193,6 +195,9 @@
       }
 
       let options = {
+        credits: {
+          enabled: false
+        },
         chart: {
           type: "bubble",
           plotBorderWidth: 1,
@@ -204,7 +209,7 @@
         xAxis: {
           type: x.is_timeframe ? "datetime" : x.is_numeric ? "linear" : "category",
           title: {
-            text: config.xAxisName ? config.xAxisName : x.label_short
+            text: config.xAxisName ? config.xAxisName : x.label_short ? x.label_short : x.label
           }
         },
 

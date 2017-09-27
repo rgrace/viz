@@ -523,3 +523,7 @@ this.drillUpButton.destroy():this.showDrillUpButton(c&&c.name||a);this.isDirty=!
 buildKDTree:y,drawLegendSymbol:g.LegendSymbolMixin.drawRectangle,getExtremes:function(){u.prototype.getExtremes.call(this,this.colorValueData);this.valueMin=this.dataMin;this.valueMax=this.dataMax;u.prototype.getExtremes.call(this)},getExtremesFromAll:!0,bindAxes:function(){var a={endOnTick:!1,gridLineWidth:0,lineWidth:0,min:0,dataMin:0,minPadding:0,max:100,dataMax:100,maxPadding:0,startOnTick:!1,title:null,tickPositions:[]};u.prototype.bindAxes.call(this);g.extend(this.yAxis.options,a);g.extend(this.xAxis.options,
 a)}},{getClassName:function(){var a=g.Point.prototype.getClassName.call(this),b=this.series,c=b.options;this.node.level<=b.nodeMap[b.rootNode].level?a+=" highcharts-above-level":this.node.isLeaf||k(c.interactByLeaf,!c.allowDrillToNode)?this.node.isLeaf||(a+=" highcharts-internal-node"):a+=" highcharts-internal-node-interactive";return a},isValid:function(){return F(this.value)},setState:function(a){g.Point.prototype.setState.call(this,a);this.graphic&&this.graphic.attr({zIndex:"hover"===a?1:0})},
 setVisible:l.pie.prototype.pointClass.prototype.setVisible})})(q)});
+
+Highcharts.setOptions({
+    colors: ["#dd3333", "#80ce5d", "#f78131", "#369dc1", "#c572d3", "#36c1b3", "#b57052", "#ed69af"]
+});

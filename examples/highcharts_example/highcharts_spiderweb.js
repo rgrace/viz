@@ -1,10 +1,11 @@
 (function() {
   var d3 = d3v4;
   var viz = {
-    id: "highcharts_treemap",
-    label: "Treemap",
+    id: "highcharts_spiderweb",
+    label: "Spiderweb",
     options: {
-      chart_name: {
+      chartName: {
+        section: "Chart",
         label: "Chart Name",
         type: "string",
       },
@@ -13,9 +14,9 @@
     handleErrors: function(data, resp) {
       var min_mes, max_mes, min_dim, max_dim, min_piv, max_piv;
       min_mes = 1
-      max_mes = 1
+      max_mes = 5
       min_dim = 1
-      max_dim = 5
+      max_dim = 1
       min_piv = 0
       max_piv = 0
 
@@ -124,81 +125,49 @@
         return d3.format(format)
       }
 
-      let dims = queryResponse.fields.dimension_like
-      let measure = queryResponse.fields.measure_like[0]
+      let x = queryResponse.fields.dimension_like[0]
+      let measures = queryResponse.fields.measure_like
+      let xCategories = data.map(function(row) {return row[x.name].value})
 
-
-      let mFormat = formatType(measure.value_format)
-
-      // walks tree to flatten and pull right fields
-      function formatNestedData(tree, idx, parent) {
-        let datum = {
-          name: tree["key"],
+      let series = measures.map(function(m) {
+        let format = formatType(m.value_format)
+        return {
+          name: m.label_short ? m.label_short : m.label,
+          pointPlacement: 'on',
+          data: data.map(function(row) {
+            return row[m.name].value
+          }),
+          tooltip: {
+            pointFormatter: function() {
+              return `<span style="color:${this.series.color}">${this.series.name}: <b>${format(this.y)}</b><br/>`
+            }
+          },
         }
-        if (parent == null) {
-          datum["id"] = "id_" + idx
-          datum["color"] = Highcharts.getOptions().colors[idx]
-        } else {
-          datum["id"] = [parent.id, idx].join("_")
-          datum["parent"] = parent.id
-        }
-        let formatted_data = []
-        if (tree.hasOwnProperty("values") && tree["values"][0].hasOwnProperty(measure.name)) {
-          let rawDatum = tree["values"][0][measure.name]
-          datum["value"] = rawDatum["value"]
-          formatted_data = [datum]
-        } else {
-          subdata = []
-
-          tree["values"].forEach(function(subtree, i) {
-            subdata = subdata.concat(formatNestedData(subtree, i, datum))
-          })
-          formatted_data = [datum]
-          formatted_data = formatted_data.concat(subdata)
-        }
-        return formatted_data
-      }
-
-      let my_nest = d3.nest()
-      // group by each dimension
-      dims.forEach(function(dim) {
-        my_nest = my_nest.key(function(d) { return d[dim.name]["value"]; })
-      })
-      nested_data = my_nest
-        .entries(data)
-
-      series = []
-      nested_data.forEach(function(tree, idx) {
-        series = series.concat(formatNestedData(tree, idx))
       })
 
       let options = {
         credits: {
           enabled: false
         },
-        title: {text: config.chart_name},
-        series: [{
-          type: "treemap",
-          data: series,
-          tooltip: {
-            pointFormatter: function() {=
-              return `<span style="color:${this.series.color}">\u25CF</span> ${this.name}: <b>${mFormat(this.value)}</b><br/>`
-            },
+        chart: {
+          polar: true,
+          type: 'line'
+        },
+        title: {text: config.chartName},
+        xAxis: {
+          categories: xCategories,
+        },
+        yAxis: {
+          gridLineInterpolation: 'polygon',
+          min: 0,
+          labels: {
+            format: '{value}'
           },
-          layoutAlgorithm: 'squarified',
-          allowDrillToNode: true,
-          dataLabels: {
-            enabled: false
-          },
-          levelIsConstant: false,
-          levels: [{
-              level: 1,
-              dataLabels: {
-                enabled: true,
-              },
-              borderWidth: 3
-          }],
-        }],
+        },
+        tooltip: {
+          shared: true,
+        },
+        series: series,
       }
       let myChart = Highcharts.chart(element, options);
     }

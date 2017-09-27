@@ -2,7 +2,7 @@
   var d3 = d3v4;
   var viz = {
     id: "highcharts_arearange",
-    label: "Highcharts Arearange",
+    label: "Arearange",
     options: {
       chartName: {
         section: "Chart",
@@ -70,7 +70,7 @@
         this.clearErrors("pivot-req");
       }
 
-      if (resp.fields.dimensions.length > max_dim) {
+      if (resp.fields.dimension_like.length > max_dim) {
         this.addError({
           group: "dim-req",
           title: "Incompatible Data",
@@ -81,7 +81,7 @@
         this.clearErrors("dim-req");
       }
 
-      if (resp.fields.dimensions.length < min_dim) {
+      if (resp.fields.dimension_like.length < min_dim) {
         this.addError({
           group: "dim-req",
           title: "Incompatible Data",
@@ -96,8 +96,7 @@
         this.addError({
           group: "mes-req",
           title: "Incompatible Data",
-          message: "You need " + min_mes +" to "+ max_mes +" measures " +
-            "requires a minimum, lower quartile (Q1), median (Q2), upper quartile (Q3), and maximum"
+          message: "You need " + min_mes +" to "+ max_mes +" measures "
         });
         return false;
       } else {
@@ -108,8 +107,7 @@
         this.addError({
           group: "mes-req",
           title: "Incompatible Data",
-          message: "You need " + min_mes +" to "+ max_mes +" measures " +
-            "requires a minimum, lower quartile (Q1), median (Q2), upper quartile (Q3), and maximum"
+          message: "You need " + min_mes +" to "+ max_mes +" measures "
         });
         return false;
       } else {
@@ -126,8 +124,8 @@
     update: function(data, element, config, queryResponse) {
       if (!this.handleErrors(data, queryResponse)) return;
 
-      let dim = queryResponse.fields.dimensions[0]
-      let measures = queryResponse.fields.measures
+      let dim = queryResponse.fields.dimension_like[0]
+      let measures = queryResponse.fields.measure_like
 
       let categories = []
       let series = []
@@ -162,7 +160,31 @@
         series.push(point)
       })
 
+      function unique(value, index, self) {
+        return self.indexOf(value) === index;
+      }
+
+      let field_group_labels = measures.map(function(m) { return m.field_group_label})
+      let field_group_label = field_group_labels.filter(unique)[0] // first. yolo
+
+      let xAxisLabel = config.xAxisName ?
+        config.xAxisName :
+        dim.label_short ?
+          dim.label_short :
+          dim.label
+
+      let yAxisLabel = config.yAxisName ?
+        config.yAxisName :
+        field_group_label ?
+          field_group_label :
+          measures[0].label_short ?
+            measures[0].label_short :
+            measures[0].label
+
       let options = {
+          credits: {
+            enabled: false
+          },
           chart: {
             type: "arearange",
             zoomType: "x"
@@ -173,7 +195,7 @@
           xAxis: {
             type: dim.is_timeframe ? "datetime" : null,
             title: {
-              text: config.xAxisName ? config.xAxisName : dim.label
+              text: xAxisLabel
             }
           },
 
@@ -181,17 +203,18 @@
             min: config.yAxisMinValue,
             max: config.yAxisMaxValue,
             title: {
-              text: config.yAxisName
+              text: yAxisLabel,
             }
           },
 
           tooltip: {
-              crosshairs: true,
-              shared: true,
+            crosshairs: true,
+            shared: true,
           },
 
           series: [{
-              data: series
+            name: yAxisLabel,
+            data: series,
           }],
       };
       if (categories.length > 0) {
