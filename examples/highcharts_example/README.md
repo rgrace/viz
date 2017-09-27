@@ -4,8 +4,8 @@ These visualizations show how to utilize the powerful [Highchart javascript libr
 
 ### Example Charts
 
- 1. [Area Range](#area-range) –
- 1. [Boxplot](#boxplot)
+ 1. [Area Range](#area-range) – display range of values
+ 1. [Boxplot](#boxplot) - summarize distributions of data
  1. [Bubble Scatterplot](#bubble-scatterplot) - display relationships between a number of dimensions on a measure
  1. [Heatmap](#heatmap) - two dimensional display of tabular data highlighting correlations
  1. [Histogram](#histogram) - visualize distributions
@@ -15,8 +15,7 @@ These visualizations show how to utilize the powerful [Highchart javascript libr
 
 # Area Range
 
-![](area-range.png)
-![](area-range.gif)
+[![](area-range.gif)](/highcharts_arearange.js)
 
 #### How it works
 
@@ -28,8 +27,7 @@ For example, in the area-range diagram featured above, it displays the min and m
 
 A [Boxplot](https://en.wikipedia.org/wiki/Box_plot) is a means to visualize the distribution of groups of data through quartiles.
 
-![](boxplot.png)
-![](boxplot.gif)
+[![](boxplot.gif)](/highcharts_boxplot.js)
 
 #### How it works
 
@@ -41,8 +39,7 @@ For example, in the boxplot featured above, it displays the quartiles of the sal
 
 A [scatterplot](https://en.wikipedia.org/wiki/Scatter_plot) is a useful visualization to display the relationship between across multiple dimensions of data. two dimension displays of X and Y can show correlations on an underlying measure. By layering a Z axis and further series, the relationship between more metrics can be displayed.
 
-![](bubble.png)
-![](bubble.gif)
+[![](bubble.gif)](/highcharts_bubble.js)
 
 #### How it works
 
@@ -54,8 +51,7 @@ For example, in the bubble scatterplot featured above, it displays the total sal
 
 A [heatmap](https://en.wikipedia.org/wiki/Heat_map) is a useful way to visualize trends and relationships within data.
 
-![](heatmap.png)
-![](heatmap.gif)
+[![](heatmap.gif)](/highcharts_heatmap.js)
 
 #### How it works
 
@@ -67,8 +63,7 @@ For example, the heatmap featured above, the total number of orders is displayed
 
 A [Histogram](https://en.wikipedia.org/wiki/Histogram) is a useful way to visualize distributions of data.
 
-![](histogram.png)
-![](histogram.gif)
+[![](histogram.gif)](/highcharts_histogram.js)
 
 #### How it works
 
@@ -80,8 +75,7 @@ For example, the Histogram featured above, see the distribution of sales price f
 
 A [Spiderweb](https://en.wikipedia.org/wiki/Radar_chart) or Radar chart is a useful way to multivariate data across a dimension.
 
-![](spiderweb.png)
-![](spiderweb.gif)
+[![](spiderweb.gif)](/highcharts_spiderweb.js)
 
 #### How it works
 
@@ -93,8 +87,7 @@ For example, the Spiderweb featured above, see the average sale price and profit
 
 This diagram creates a [Treemap](https://en.wikipedia.org/wiki/Treemapping) to display hierarchical data in a nested structure.
 
-![](treemap.png)
-![](treemap.gif)
+[![](treemap.gif)](/highcharts_treemap.js)
 
 #### How it works
 
@@ -106,8 +99,7 @@ For example, in the Treemap featured above, you can see order counts by the hier
 
 This diagram creates a [Waterfall](https://en.wikipedia.org/wiki/Waterfall_chart) helps in understanding the cumulative effect of sequentially introduced positive or negative delta values.
 
-![](waterfall.png)
-![](waterfall.gif)
+[![](waterfall.gif)](/highcharts_waterfall.js)
 
 #### How it works
 
