@@ -13,7 +13,7 @@
     handleErrors: function(data, resp) {
       var min_mes, max_mes, min_dim, max_dim, min_piv, max_piv;
       min_mes = 1
-      max_mes = 2
+      max_mes = 1
       min_dim = 1
       max_dim = 5
       min_piv = 0

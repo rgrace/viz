@@ -118,7 +118,9 @@
       return true;
     },
     // Set up the initial state of the visualization
-    create: function(element, config) {},
+    create: function(element, config) {
+      element.innerHTML = ""
+    },
 
     // Render in response to the data or settings changing
     update: function(data, element, config, queryResponse) {
