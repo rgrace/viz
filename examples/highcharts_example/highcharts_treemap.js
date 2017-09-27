@@ -95,8 +95,40 @@
     update: function(data, element, config, queryResponse) {
       if (!this.handleErrors(data, queryResponse)) return;
 
+      function formatType(valueFormat) {
+        if (typeof valueFormat != "string") {
+          return function (x) {return x}
+        }
+        let format = ""
+        switch (valueFormat.charAt(0)) {
+          case '$':
+            format += '$'; break
+          case '£':
+            format += '£'; break
+          case '€':
+            format += '€'; break
+        }
+        if (valueFormat.indexOf(',') > -1) {
+          format += ','
+        }
+        splitValueFormat = valueFormat.split(".")
+        format += '.'
+        format += splitValueFormat.length > 1 ? splitValueFormat[1].length : 0
+
+        switch(valueFormat.slice(-1)) {
+          case '%':
+            format += '%'; break
+          case '0':
+            format += 'f'; break
+        }
+        return d3.format(format)
+      }
+
       let dims = queryResponse.fields.dimension_like
       let measure = queryResponse.fields.measure_like[0]
+
+
+      let mFormat = formatType(measure.value_format)
 
       // walks tree to flatten and pull right fields
       function formatNestedData(tree, idx, parent) {
@@ -114,11 +146,6 @@
         if (tree.hasOwnProperty("values") && tree["values"][0].hasOwnProperty(measure.name)) {
           let rawDatum = tree["values"][0][measure.name]
           datum["value"] = rawDatum["value"]
-
-          if (rawDatum["rendered"] == null){
-          } else {
-            datum["rendered"] = rawDatum["rendered"]
-          }
           formatted_data = [datum]
         } else {
           subdata = []
@@ -126,9 +153,6 @@
           tree["values"].forEach(function(subtree, i) {
             subdata = subdata.concat(formatNestedData(subtree, i, datum))
           })
-          // if (parent == null) {
-          //   datum["value"] = d3.sum(subdata, function(d) {return d["value"];})
-          // }
           formatted_data = [datum]
           formatted_data = formatted_data.concat(subdata)
         }
@@ -156,16 +180,21 @@
         series: [{
           type: "treemap",
           data: series,
+          tooltip: {
+            pointFormatter: function() {=
+              return `<span style="color:${this.series.color}">\u25CF</span> ${this.name}: <b>${mFormat(this.value)}</b><br/>`
+            },
+          },
           layoutAlgorithm: 'squarified',
           allowDrillToNode: true,
           dataLabels: {
-              enabled: false
+            enabled: false
           },
           levelIsConstant: false,
           levels: [{
               level: 1,
               dataLabels: {
-                  enabled: true
+                enabled: true,
               },
               borderWidth: 3
           }],

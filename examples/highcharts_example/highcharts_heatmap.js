@@ -110,9 +110,41 @@
     update: function(data, element, config, queryResponse) {
       if (!this.handleErrors(data, queryResponse)) return;
 
+      function formatType(valueFormat) {
+        if (typeof valueFormat != "string") {
+          return function (x) {return x}
+        }
+        let format = ""
+        switch (valueFormat.charAt(0)) {
+          case '$':
+            format += '$'; break
+          case '£':
+            format += '£'; break
+          case '€':
+            format += '€'; break
+        }
+        if (valueFormat.indexOf(',') > -1) {
+          format += ','
+        }
+        splitValueFormat = valueFormat.split(".")
+        format += '.'
+        format += splitValueFormat.length > 1 ? splitValueFormat[1].length : 0
+
+        switch(valueFormat.slice(-1)) {
+          case '%':
+            format += '%'; break
+          case '0':
+            format += 'f'; break
+        }
+        return d3.format(format)
+      }
+
+
       let x = queryResponse.fields.dimension_like[0]
       let y = queryResponse.fields.dimension_like[1]
       let z = queryResponse.fields.measure_like[0]
+
+      let zFormat = formatType(z.value_format)
 
       function aesthetic(datum, field) {
         let value = datum[field.name].value
@@ -167,11 +199,6 @@
       }
 
       function aesthetics(d) {
-        // return {
-        //   x: aesthetic(d, x),
-        //   y: aesthetic(d, y),
-        //   z: aesthetic(d, z),
-        // }
         return [
           scaledAesthetic(d, x, xExtent.fieldScale),
           scaledAesthetic(d, y, yExtent.fieldScale),
@@ -212,24 +239,27 @@
         colorAxis: {
           min: minz,
           max: maxz,
-          minColor: '#3060cf',
-          maxColor: '#c4463a',
+          minColor: "#fee8c8",
+          maxColor: "#e34a33",
         },
         series: [{
           data: series,
           borderWidth: 1,
           dataLabels: {
             enabled: true,
-            color: '#000000'
+            color: '#000000',
+            formatter: function() {
+              return zFormat(this.point.value)
+            },
           },
           tooltip: {
-            headerFormat: z.label_short ? z.label_short : z.label  + '<br/>',
+            headerFormat: z.label_short ? z.label_short +  '<br/>' : z.label  +  '<br/>',
             pointFormatter: function() {
               let x = xExtent.fieldScale ? xExtent.categories[this.x] : this.x
               let y = yExtent.fieldScale ? yExtent.categories[this.y] : this.y
-              let z = this.value
+              let z = zFormat(this.value)
               return `${x} ${y} <b>${z}</b>`
-            }
+            },
           },
         }]
       };
