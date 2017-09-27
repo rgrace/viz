@@ -5,7 +5,7 @@
 
 This diagram creates a [sunburst](https://en.wikipedia.org/wiki/Pie_chart#Ring_chart_.2F_Sunburst_chart_.2F_Multilevel_pie_chart) to display hierarchical data in a nested structure.
 
-![](treemap.mov)
+![](sunburst.mov)
 
 **How it works**
 
