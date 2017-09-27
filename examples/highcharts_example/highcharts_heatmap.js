@@ -1,8 +1,8 @@
 (function() {
   var d3 = d3v4;
   var viz = {
-    id: "highcharts_Heatmap",
-    label: "Highcharts Heatmap",
+    id: "highcharts_heatmap",
+    label: "Heatmap",
     options: {
       chartName: {
         section: "Chart",
@@ -20,22 +20,6 @@
         section: "Y",
         type: "string",
         placeholder: "Provide an axis name ..."
-      },
-      yAxisMinValue: {
-        label: "Min value",
-        default: null,
-        section: "Y",
-        type: "number",
-        placeholder: "Any number",
-        display_size: "half",
-      },
-      yAxisMaxValue: {
-        label: "Max value",
-        default: null,
-        section: "Y",
-        type: "number",
-        placeholder: "Any number",
-        display_size: "half",
       },
     },
     // require proper data input
@@ -70,7 +54,7 @@
         this.clearErrors("pivot-req");
       }
 
-      if (resp.fields.dimensions.length > max_dim) {
+      if (resp.fields.dimension_like.length > max_dim) {
         this.addError({
           group: "dim-req",
           title: "Incompatible Data",
@@ -81,7 +65,7 @@
         this.clearErrors("dim-req");
       }
 
-      if (resp.fields.dimensions.length < min_dim) {
+      if (resp.fields.dimension_like.length < min_dim) {
         this.addError({
           group: "dim-req",
           title: "Incompatible Data",
@@ -126,9 +110,41 @@
     update: function(data, element, config, queryResponse) {
       if (!this.handleErrors(data, queryResponse)) return;
 
-      let x = queryResponse.fields.dimensions[0]
-      let y = queryResponse.fields.dimensions[1]
-      let z = queryResponse.fields.measures[0]
+      function formatType(valueFormat) {
+        if (typeof valueFormat != "string") {
+          return function (x) {return x}
+        }
+        let format = ""
+        switch (valueFormat.charAt(0)) {
+          case '$':
+            format += '$'; break
+          case '£':
+            format += '£'; break
+          case '€':
+            format += '€'; break
+        }
+        if (valueFormat.indexOf(',') > -1) {
+          format += ','
+        }
+        splitValueFormat = valueFormat.split(".")
+        format += '.'
+        format += splitValueFormat.length > 1 ? splitValueFormat[1].length : 0
+
+        switch(valueFormat.slice(-1)) {
+          case '%':
+            format += '%'; break
+          case '0':
+            format += 'f'; break
+        }
+        return d3.format(format)
+      }
+
+
+      let x = queryResponse.fields.dimension_like[0]
+      let y = queryResponse.fields.dimension_like[1]
+      let z = queryResponse.fields.measure_like[0]
+
+      let zFormat = formatType(z.value_format)
 
       function aesthetic(datum, field) {
         let value = datum[field.name].value
@@ -183,11 +199,6 @@
       }
 
       function aesthetics(d) {
-        // return {
-        //   x: aesthetic(d, x),
-        //   y: aesthetic(d, y),
-        //   z: aesthetic(d, z),
-        // }
         return [
           scaledAesthetic(d, x, xExtent.fieldScale),
           scaledAesthetic(d, y, yExtent.fieldScale),
@@ -198,6 +209,9 @@
       let series = data.map(aesthetics)
 
       let options = {
+        credits: {
+          enabled: false
+        },
         chart: {
           type: 'heatmap',
           plotBorderWidth: 1,
@@ -207,7 +221,7 @@
         xAxis: {
           type: x.is_timeframe ? "datetime" : x.is_numeric ? "linear" : "category",
           title: {
-            text: config.xAxisName ? config.xAxisName : x.label_short
+            text: config.xAxisName ? config.xAxisName : x.label_short ? x.label_short : x.label
           },
           min: xExtent.min,
           max: xExtent.max,
@@ -216,7 +230,7 @@
         yAxis: {
           type: y.is_timeframe ? "datetime" : y.is_numeric ? "linear" : "category",
           title: {
-            text: config.yAxisName ? config.yAxisName : y.label_short
+            text: config.yAxisName ? config.yAxisName : y.label_short ? y.label_short : y.label
           },
           min: yExtent.min,
           max: yExtent.max,
@@ -225,24 +239,27 @@
         colorAxis: {
           min: minz,
           max: maxz,
-          minColor: '#3060cf',
-          maxColor: '#c4463a',
+          minColor: "#fee8c8",
+          maxColor: "#e34a33",
         },
         series: [{
           data: series,
           borderWidth: 1,
           dataLabels: {
             enabled: true,
-            color: '#000000'
+            color: '#000000',
+            formatter: function() {
+              return zFormat(this.point.value)
+            },
           },
           tooltip: {
-            headerFormat: z.label_short + '<br/>',
+            headerFormat: z.label_short ? z.label_short +  '<br/>' : z.label  +  '<br/>',
             pointFormatter: function() {
               let x = xExtent.fieldScale ? xExtent.categories[this.x] : this.x
               let y = yExtent.fieldScale ? yExtent.categories[this.y] : this.y
-              let z = this.value
+              let z = zFormat(this.value)
               return `${x} ${y} <b>${z}</b>`
-            }
+            },
           },
         }]
       };
