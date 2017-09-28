@@ -2,6 +2,91 @@ looker.plugins.visualizations.add({
   id: "sunburst",
   label: "Sunburst",
   options: {
+    color_range: {
+      type: "array",
+      label: "Color Range",
+      display: "colors",
+      default: ["#dd3333", "#80ce5d", "#f78131", "#369dc1", "#c572d3", "#36c1b3", "#b57052", "#ed69af"],
+    },
+  },
+  // require proper data input
+  handleErrors: function(data, resp) {
+    var min_mes, max_mes, min_dim, max_dim, min_piv, max_piv;
+    min_mes = 1
+    max_mes = 1
+    min_dim = 1
+    max_dim = undefined
+    min_piv = 0
+    max_piv = 0
+
+    if (resp.fields.pivots.length > max_piv) {
+      this.addError({
+        group: "pivot-req",
+        title: "Incompatible Data",
+        message: "No pivot is allowed"
+      });
+      return false;
+    } else {
+      this.clearErrors("pivot-req");
+    }
+
+    if (resp.fields.pivots.length < min_piv) {
+      this.addError({
+        group: "pivot-req",
+        title: "Incompatible Data",
+        message: "Add a Pivot"
+      });
+      return false;
+    } else {
+      this.clearErrors("pivot-req");
+    }
+
+    if (max_dim && resp.fields.dimensions.length > max_dim) {
+      this.addError({
+        group: "dim-req",
+        title: "Incompatible Data",
+        message: "You need " + min_dim +" to "+ max_dim +" dimensions"
+      });
+      return false;
+    } else {
+      this.clearErrors("dim-req");
+    }
+
+    if (resp.fields.dimensions.length < min_dim) {
+      this.addError({
+        group: "dim-req",
+        title: "Incompatible Data",
+        message: "You need " + min_dim + max_dim ? " to "+ max_dim : "" +" dimensions"
+      });
+      return false;
+    } else {
+      this.clearErrors("dim-req");
+    }
+
+    if (max_mes && resp.fields.measure_like.length > max_mes) {
+      this.addError({
+        group: "mes-req",
+        title: "Incompatible Data",
+        message: "You need " + min_mes +" to "+ max_mes +" measures"
+      });
+      return false;
+    } else {
+      this.clearErrors("mes-req");
+    }
+
+    if (resp.fields.measure_like.length < min_mes) {
+      this.addError({
+        group: "mes-req",
+        title: "Incompatible Data",
+        message: "You need " + min_mes + max_mes ? " to "+ max_mes : "" +" measures"
+      });
+      return false;
+    } else {
+      this.clearErrors("mes-req");
+    }
+
+    // If no errors found, then return true
+    return true;
   },
   // Set up the initial state of the visualization
   create: function(element, config) {
@@ -12,19 +97,17 @@ looker.plugins.visualizations.add({
   },
   // Render in response to the data or settings changing
   update: function(data, element, config, queryResponse) {
+    if (!this.handleErrors(data, queryResponse)) return;
     var d3 = d3v4;
-
-    // Clear any errors from previous updates
-    this.clearErrors();
 
     var width = element.clientWidth;
     var height = element.clientHeight;
     var radius = (Math.min(width, height) / 2) - 8;
 
-    var dimension = queryResponse.fields.dimensions[0].name;
-    var measure = queryResponse.fields.measures[0].name;
+    var dimensions = queryResponse.fields.dimension_like;
+    var measure = queryResponse.fields.measure_like[0];
 
-    var format = d3.format(",");
+    var format = formatType(measure.value_format);
 
     var x = d3.scaleLinear()
           .range([0, 2 * Math.PI]);
@@ -33,16 +116,14 @@ looker.plugins.visualizations.add({
           .range([0, radius]);
 
     var color = d3.scaleOrdinal()
-      .range(["#dd3333", "#80ce5d", "#f78131", "#369dc1", "#c572d3", "#36c1b3", "#b57052", "#ed69af"]);
+      .range(config.color_range);
 
     data.forEach(function(row) {
-      row.taxonomy = row[dimension].value.split("-");
+      row.taxonomy = dimensions.map(function(dimension) {return row[dimension.name].value}) // row[dimension].value.split("-");
     });
 
     var partition = d3.partition()
       .size([2 * Math.PI, radius * radius]);
-//          .value(function(d) { return 1; });
-//          .value(function(d) { return d.data[measure].value; });
 
     var arc = d3.arc()
       .startAngle(function(d) { return d.x0; })
@@ -62,8 +143,7 @@ looker.plugins.visualizations.add({
       .attr("x", -width/2 + 20);
 
     var root = d3.hierarchy(burrow(data))
-          .sum(function(d) { return ("data" in d) ? d.data[measure].value : 0; });
-//      .sum(function(d) { return d.children.length > 0 ? 0 : 1; });
+          .sum(function(d) { return ("data" in d) ? d.data[measure.name].value : 0; });
     partition(root);
 
     svg.selectAll("path")
@@ -100,14 +180,6 @@ looker.plugins.visualizations.add({
             })
         });
 
-    /*
-    console.log("burrowed", burrow(data));
-    console.log("root", root);
-    console.log("config", config);
-    console.log("data", data);
-    console.log("queryResponse", queryResponse);
-    */
-
     function burrow(table) {
       // create nested object
       var obj = {};
@@ -142,7 +214,7 @@ looker.plugins.visualizations.add({
         return arr;
       };
 
-      // use descend to create nested children arrys
+      // use descend to create nested children arrays
       return {
         name: "root",
         children: descend(obj, 1),

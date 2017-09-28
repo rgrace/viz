@@ -3,7 +3,7 @@
 
 ![](collapsable-tree.png)
 
-This diagram displays a [treemap](https://en.wikipedia.org/wiki/Tree_structure), showing ahierarchy of a series of dimensions.
+This diagram displays a [treemap](https://en.wikipedia.org/wiki/Tree_structure), showing a hierarchy of a series of dimensions.
 
 ![](collapsable-tree.mov)
 

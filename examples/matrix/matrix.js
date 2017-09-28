@@ -2,6 +2,91 @@ looker.plugins.visualizations.add({
   id: "matrix",
   label: "Matrix",
   options: {
+    color_range: {
+      type: "array",
+      label: "Color Range",
+      display: "colors",
+      default: ["#fcfbfd","#efedf5","#dadaeb","#bcbddc","#9e9ac8","#807dba","#6a51a3","#4a1486"],
+    },
+  },
+  // require proper data input
+  handleErrors: function(data, resp) {
+    var min_mes, max_mes, min_dim, max_dim, min_piv, max_piv;
+    min_mes = 1
+    max_mes = 1
+    min_dim = 2
+    max_dim = 2
+    min_piv = 0
+    max_piv = 0
+
+    if (resp.fields.pivots.length > max_piv) {
+      this.addError({
+        group: "pivot-req",
+        title: "Incompatible Data",
+        message: "No pivot is allowed"
+      });
+      return false;
+    } else {
+      this.clearErrors("pivot-req");
+    }
+
+    if (resp.fields.pivots.length < min_piv) {
+      this.addError({
+        group: "pivot-req",
+        title: "Incompatible Data",
+        message: "Add a Pivot"
+      });
+      return false;
+    } else {
+      this.clearErrors("pivot-req");
+    }
+
+    if (max_dim && resp.fields.dimensions.length > max_dim) {
+      this.addError({
+        group: "dim-req",
+        title: "Incompatible Data",
+        message: "You need " + min_dim +" to "+ max_dim +" dimensions"
+      });
+      return false;
+    } else {
+      this.clearErrors("dim-req");
+    }
+
+    if (resp.fields.dimensions.length < min_dim) {
+      this.addError({
+        group: "dim-req",
+        title: "Incompatible Data",
+        message: "You need " + min_dim + max_dim ? " to "+ max_dim : "" +" dimensions"
+      });
+      return false;
+    } else {
+      this.clearErrors("dim-req");
+    }
+
+    if (max_mes && resp.fields.measure_like.length > max_mes) {
+      this.addError({
+        group: "mes-req",
+        title: "Incompatible Data",
+        message: "You need " + min_mes +" to "+ max_mes +" measures"
+      });
+      return false;
+    } else {
+      this.clearErrors("mes-req");
+    }
+
+    if (resp.fields.measure_like.length < min_mes) {
+      this.addError({
+        group: "mes-req",
+        title: "Incompatible Data",
+        message: "You need " + min_mes + max_mes ? " to "+ max_mes : "" +" measures"
+      });
+      return false;
+    } else {
+      this.clearErrors("mes-req");
+    }
+
+    // If no errors found, then return true
+    return true;
   },
   // Set up the initial state of the visualization
   create: function(element, config) {
@@ -29,18 +114,17 @@ looker.plugins.visualizations.add({
   },
   // Render in response to the data or settings changing
   update: function(data, element, config, queryResponse) {
+    if (!this.handleErrors(data, queryResponse)) return;
     var d3 = d3v4;
-
-    // Clear any errors from previous updates
-    this.clearErrors();
 
     var margin = {top: 50, right: 30, bottom: 10, left: 150};
     var width = element.clientWidth - margin.left - margin.right;
     var height = element.clientHeight - margin.top - margin.bottom;
 
+    // needs to be more dynamic
     var color = d3.scaleThreshold()
       .domain([0, 50, 1000, 5000, 50000, 100000, 200000])
-      .range(["#fcfbfd","#efedf5","#dadaeb","#bcbddc","#9e9ac8","#807dba","#6a51a3","#4a1486"]);
+      .range(config.color_range);
 
     var size = Math.min(width,height);
 
@@ -51,11 +135,11 @@ looker.plugins.visualizations.add({
       .append("g")
       .attr('transform', 'translate(' + [margin.left, margin.top] + ')');
 
-    var dimension1 = queryResponse.fields.dimensions[0].name;
-    var dimension2 = queryResponse.fields.dimensions[1].name;
-    var measure = queryResponse.fields.measures[0].name;
+    var dimension1 = queryResponse.fields.dimension_like[0].name;
+    var dimension2 = queryResponse.fields.dimension_like[1].name;
+    var measure = queryResponse.fields.measure_like[0];
 
-    var format = d3.format(",");
+    var format = formatType(measure.value_format);
 
     var dimset1 = d3.set();
     var dimset2 = d3.set();
@@ -114,10 +198,10 @@ looker.plugins.visualizations.add({
       .attr('height', yscale.bandwidth())
       .attr('width', xscale.bandwidth())
       .style("fill", function(d) {
-        return color(d[measure].value);
+        return color(d[measure.name].value);
       })
       .append("title")
-      .text(function(d) { return format(d[measure].value); });
+      .text(function(d) { return format(d[measure.name].value); });
 
     svg.selectAll(".x.axis text")
       .on("click", function(d) {
@@ -128,7 +212,7 @@ looker.plugins.visualizations.add({
         })
 
         filtered.forEach(function(p) {
-          lookup[p[dimension1].value] = p[measure].value;
+          lookup[p[dimension1].value] = p[measure.name].value;
         });
 
         var sorted = dimset1.values()
@@ -162,7 +246,7 @@ looker.plugins.visualizations.add({
         })
 
         filtered.forEach(function(p) {
-          lookup[p[dimension2].value] = p[measure].value;
+          lookup[p[dimension2].value] = p[measure.name].value;
         });
 
         var sorted = dimset2.values()

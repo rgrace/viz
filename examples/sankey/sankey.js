@@ -2,6 +2,91 @@ looker.plugins.visualizations.add({
   id: "sankey",
   label: "Sankey",
   options: {
+    color_range: {
+      type: "array",
+      label: "Color Range",
+      display: "colors",
+      default: ["#dd3333", "#80ce5d", "#f78131", "#369dc1", "#c572d3", "#36c1b3", "#b57052", "#ed69af"],
+    },
+  },
+  // require proper data input
+  handleErrors: function(data, resp) {
+    var min_mes, max_mes, min_dim, max_dim, min_piv, max_piv;
+    min_mes = 1
+    max_mes = 1
+    min_dim = 2
+    max_dim = undefined
+    min_piv = 0
+    max_piv = 0
+
+    if (resp.fields.pivots.length > max_piv) {
+      this.addError({
+        group: "pivot-req",
+        title: "Incompatible Data",
+        message: "No pivot is allowed"
+      });
+      return false;
+    } else {
+      this.clearErrors("pivot-req");
+    }
+
+    if (resp.fields.pivots.length < min_piv) {
+      this.addError({
+        group: "pivot-req",
+        title: "Incompatible Data",
+        message: "Add a Pivot"
+      });
+      return false;
+    } else {
+      this.clearErrors("pivot-req");
+    }
+
+    if (max_dim && resp.fields.dimensions.length > max_dim) {
+      this.addError({
+        group: "dim-req",
+        title: "Incompatible Data",
+        message: "You need " + min_dim +" to "+ max_dim +" dimensions"
+      });
+      return false;
+    } else {
+      this.clearErrors("dim-req");
+    }
+
+    if (resp.fields.dimensions.length < min_dim) {
+      this.addError({
+        group: "dim-req",
+        title: "Incompatible Data",
+        message: "You need " + min_dim + max_dim ? " to "+ max_dim : "" +" dimensions"
+      });
+      return false;
+    } else {
+      this.clearErrors("dim-req");
+    }
+
+    if (max_mes && resp.fields.measure_like.length > max_mes) {
+      this.addError({
+        group: "mes-req",
+        title: "Incompatible Data",
+        message: "You need " + min_mes +" to "+ max_mes +" measures"
+      });
+      return false;
+    } else {
+      this.clearErrors("mes-req");
+    }
+
+    if (resp.fields.measure_like.length < min_mes) {
+      this.addError({
+        group: "mes-req",
+        title: "Incompatible Data",
+        message: "You need " + min_mes + max_mes ? " to "+ max_mes : "" +" measures"
+      });
+      return false;
+    } else {
+      this.clearErrors("mes-req");
+    }
+
+    // If no errors found, then return true
+    return true;
   },
   // Set up the initial state of the visualization
   create: function(element, config) {
@@ -21,10 +106,8 @@ looker.plugins.visualizations.add({
   },
   // Render in response to the data or settings changing
   update: function(data, element, config, queryResponse) {
+    if (!this.handleErrors(data, queryResponse)) return;
     var d3 = d3v4;
-
-    // Clear any errors from previous updates
-    this.clearErrors();
 
     var width = element.clientWidth;
     var height = element.clientHeight;
@@ -35,14 +118,13 @@ looker.plugins.visualizations.add({
       .attr("height", "100%")
       .append("g");
 
-    var dimension1 = queryResponse.fields.dimensions[0].name;
-    var dimension2 = queryResponse.fields.dimensions[1].name;
-    var measure = queryResponse.fields.measures[0].name;
+    var dimensions = queryResponse.fields.dimension_like;
+    var measure = queryResponse.fields.measure_like[0];
 
-    var format = d3.format(",");
+    var format = formatType(measure.value_format);
 
     var color = d3.scaleOrdinal()
-      .range(["#dd3333", "#80ce5d", "#f78131", "#369dc1", "#c572d3", "#36c1b3", "#b57052", "#ed69af"]);
+      .range(config.color_range);
 
 		var defs = svg.append('defs');
 
@@ -71,11 +153,18 @@ looker.plugins.visualizations.add({
 		var nodes = d3.set();
 
 		data.forEach(function(d) {
-			nodes.add(d[dimension1].value + "1");
-			nodes.add(d[dimension2].value + "2");
-			graph.links.push({ "source": d[dimension1].value + "1",
-												 "target": d[dimension2].value + "2",
-												 "value": +d[measure].value});
+      // variable number of dimensions
+      var path = dimensions.map(function(dim) {return d[dim.name].value});
+      path.forEach(function(p,i) {
+        if (i == path.length-1) return;
+        var source = path.slice(i,i+1)[0] + i;
+        var target = path.slice(i+1,i+2)[0] + (i+1);
+        nodes.add(source);
+        nodes.add(target);
+        graph.links.push({ "source": source,
+                           "target": target,
+                           "value": +d[measure.name].value});
+      });
 		});
 
 		var nodesArray = nodes.values();
@@ -96,13 +185,13 @@ looker.plugins.visualizations.add({
 		link = link
 			.data(graph.links)
 			.enter().append("path")
-        .attr("class", "link")
+				.attr("class", "link")
 				.attr("d", function(d) { return "M" + -10 + "," + -10 + d3.sankeyLinkHorizontal()(d); })
 				.style("opacity", 0.4)
 				.attr("stroke-width", function(d) { return Math.max(1, d.width); })
         .on("mouseenter", function(d) {
           svg.selectAll(".link")
-            .style("opacity", 0.1)
+            .style("opacity", 0.05)
           d3.select(this)
             .style("opacity", 0.7)
           svg.selectAll(".node")
@@ -154,7 +243,7 @@ looker.plugins.visualizations.add({
           .style("opacity", function(p) {
             if (p.source == d) return 0.7;
             if (p.target  == d) return 0.7;
-            return 0.1;
+            return 0.05;
           });
       })
       .on("mouseleave", function(d) {
