@@ -151,6 +151,7 @@ looker.plugins.visualizations.add({
   // Render in response to the data or settings changing
   update: function(data, element, config, queryResponse) {
     if (!this.handleErrors(data, queryResponse)) return;
+    element.innerHTML = ""
     var formattedData = this.prepare(data, queryResponse)
     return calendarView(element, formattedData, config.color_range)
   }
