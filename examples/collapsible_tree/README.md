@@ -1,6 +1,5 @@
 #  Collapsible Tree
 
-
 ![](collapsible-tree.png)
 
 This diagram displays a [treemap](https://en.wikipedia.org/wiki/Tree_structure), showing a hierarchy of a series of dimensions.
