@@ -1,6 +1,5 @@
 #  Treemap
 
-
 ![](treemap.png)
 
 This diagram creates a [treemap](https://en.wikipedia.org/wiki/Treemapping) to display hierarchical data in a nested structure.
