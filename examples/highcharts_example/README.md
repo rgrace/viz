@@ -107,5 +107,6 @@ Create a look with one dimensions and one measure.
 
 For example, in the Waterfall featured above, you can see an initial total sale price amount quarterly deltas and a final total sale price amount.
 
+Include each js, [utils.js](../common/utils.js), [highcharts.js](../common/highcharts.js) and [d3.v4.js](../common/d3.v4.js)
 
 
