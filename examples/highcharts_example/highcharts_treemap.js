@@ -181,7 +181,7 @@
           type: "treemap",
           data: series,
           tooltip: {
-            pointFormatter: function() {=
+            pointFormatter: function() {
               return `<span style="color:${this.series.color}">\u25CF</span> ${this.name}: <b>${mFormat(this.value)}</b><br/>`
             },
           },
