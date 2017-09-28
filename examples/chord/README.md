@@ -1,8 +1,11 @@
 #  Chord
 
-This diagram allows you to show affinity between two dimensions. This is helpful for showing customer paths, market basket analysis, among others.
 
-![](chord.jpg)
+![](chord.png)
+
+This diagram creates a [chord diagram](https://en.wikipedia.org/wiki/Chord_diagram), showing affinity between two dimensions. This is helpful for showing customer paths, market basket analysis, among others.
+
+![](chord.mov)
 
 **How it works**
 

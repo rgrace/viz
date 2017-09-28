@@ -1,278 +1,277 @@
-// this visualization requires the code that makes up the sankey plugin.
-// personally, I just pasted that code into the same ~/looker/plugins/visualizations
-// directory as sankey-plugin.js
-
-(function() {
-
-
-  // function to format axis label (sort of)
-  function capitalizeFirstLetter(string) {
-      return string.charAt(0).toUpperCase() + string.slice(1);
-  }
-
-  var viz = {
-    id: 'sankey',
-    label: 'Sankey',
-    options: {
-      colorRange: {
-        type: 'array',
-        label: 'Color Ranges',
-        section: 'Style',
-        placeholder: '#fff'
-      }
+looker.plugins.visualizations.add({
+  id: "sankey",
+  label: "Sankey",
+  options: {
+    color_range: {
+      type: "array",
+      label: "Color Range",
+      display: "colors",
+      default: ["#dd3333", "#80ce5d", "#f78131", "#369dc1", "#c572d3", "#36c1b3", "#b57052", "#ed69af"],
     },
-    handleErrors: function(data, resp) {
-      if (!resp || !resp.fields) return null;
-      if (resp.fields.dimensions.length != 2) {
-        this.addError({
-          group: 'dimension-req',
-          title: 'Incompatible Data',
-          message: 'Two dimensions are required'
-        });
-        return false;
-      } else {
-        this.clearErrors('dimension-req');
-      }
-      if (resp.fields.measures.length != 1) {
-        this.addError({
-          group: 'measure-req',
-          title: 'Incompatible Data',
-          message: 'A single measure is required'
-        });
-        return false;
-      } else {
-        this.clearErrors('measure-req');
-      }
-      return true;
-    },
+  },
+  // require proper data input
+  handleErrors: function(data, resp) {
+    var min_mes, max_mes, min_dim, max_dim, min_piv, max_piv;
+    min_mes = 1
+    max_mes = 1
+    min_dim = 2
+    max_dim = undefined
+    min_piv = 0
+    max_piv = 0
 
-    create: function(element, settings) {
-
-      // create SVG element
-      var chart = d3.select(element)
-        .append('svg')
-        .attr('width', '100%')
-        .attr('height', '100%')
-        .attr('class', 'chart');
-
-    },
-
-    update: function(data, element, settings, resp) {
-      if (!this.handleErrors(data, resp)) return;
-
-      // create tooltip
-      var tip = d3.tip()
-        .attr('class', 'looker-chart-tooltip')
-        .offset([-10, 0])
-        .html(function(data) {
-          return "<strong>" + data.measure2.name.split(".")[0].toUpperCase() + ' ' + capitalizeFirstLetter(data.measure2.name.split(".")[1])
-            + "</strong> <span style='color:red'>" + data.z + "</span>";
-        });
-
-      var $el = $(element);
-      var $svg = $el.find("svg");
-      $svg.empty(); // Clear any existing chart
-
-      // function to extract data
-      function mkExtracter(data, names) {
-                        return function (name) {
-                                return data.map(function (x) {
-                                        return x[name].value;
-                                });
-                        };
-                };
-
-      // function to extract drill-down uri
-      function drillExtracter(data, names) {
-                        return function (name) {
-                                return data.map(function (x) {
-                                        return x[name].drilldown_uri;
-                                });
-                        };
-                };
-
-      var units = "Page Views";
-
-      var formatNumber = d3.format(",.0f"),    // zero decimal places
-          format = function(d) { return formatNumber(d) + " " + units; },
-          color = d3.scale.category20();
-
-      //  get meta data for labels, etc.
-      var extractData = mkExtracter(data);
-      var extractDrill = drillExtracter(data);
-      var dimension_1 = resp.fields.dimensions[0];    // meta data for dimension
-      var dimension_2 = resp.fields.dimensions[1];      // meta data for first measure
-      var measure_1 = resp.fields.measures[0];      // meta data for second measure
-      var measure_1_drill = extractDrill(measure_1.name)
-
-      // get arrays of data
-      var x = extractData(dimension_1.name)
-      var y = extractData(dimension_2.name)
-      var z = extractData(measure_1.name)
-
-      // create a unique set of nodes
-      function ArrNoDupe(a) {
-          var temp = {};
-          for (var i = 0; i < a.length; i++)
-              temp[a[i]] = true;
-          var r = [];
-          for (var k in temp)
-              r.push(k);
-          return r;
-      }
-      var names = ArrNoDupe(x.concat(y));
-
-      // construct node names
-      var nodes = [];
-      names.forEach(function(x, i){
-          nodes.push({
-              "name":x
-          });
+    if (resp.fields.pivots.length > max_piv) {
+      this.addError({
+        group: "pivot-req",
+        title: "Incompatible Data",
+        message: "No pivot is allowed"
       });
-
-      // iterate over data
-      var data_zip = [];
-        x.forEach(function(_, i){
-          data_zip.push({
-            "source":x[i], "target":y[i], "value":z[i]
-          })
-        });
-      graph = {};
-      graph["links"] = data_zip;
-      graph["nodes"] = nodes;
-
-      // define margin height and width
-      var margin = {top: 10, right: 10, bottom: 10, left: 10};
-      var width = $el.width() - margin.left - margin.right;
-      var height = $el.height() - margin.top - margin.bottom;
-      var padding = 60;
-
-      // set the sankey diagram properties
-      var sankey = d3.sankey()
-          .nodeWidth(36)
-          .nodePadding(10)
-          .size([width, height]);
-
-      var path = sankey.link();
-
-      // introduce the chart
-      var chart = d3.select(element)
-        .select('svg.chart')
-        .attr( "viewBox",
-        "" + (0 - horizontalMarginSize ) + " "
-        + cycleTopMarginSize + " "
-        + (960 + horizontalMarginSize * 2 ) + " "
-        + (500 + (-1 * cycleTopMarginSize)) + " " );
-
-	chart.call(tip);  
-
-    // map nodes, links, and values
-      var nodeMap = {};
-      graph.nodes.forEach(function(x) { nodeMap[x.name] = x; });
-      graph.links = graph.links.map(function(x) {
-        return {
-          source: nodeMap[x.source],
-          target: nodeMap[x.target],
-          value: x.value
-        };
-      });
-
-      sankey
-        .nodes(graph.nodes)
-        .links(graph.links)
-        .layout(32);
-
-      // add in the links
-        var link = chart.append("g").selectAll(".link")
-            .data(graph.links)
-            .enter().append("path")
-            .attr("class", "link")
-            .attr("d", path)
-            .style({ "stroke": "#000"
-                    , "fill": "none"
-                    , "opacity": '0.2'
-                    , "stroke-width": function(d) { return Math.max(1, d.dy);} })
-      .on('mouseover', function(d){
-        var nodeSelection = d3.select(this).style({opacity:'0.5'});
-            nodeSelection.select("text").style({opacity:'0.1'});
-      })
-            .on('mouseout', function(d){
-                  var nodeSelection = d3.select(this).style({opacity:'0.2'});
-                  nodeSelection.select("text").style({opacity:'0.1'});
-                })
-      .sort(function(a, b) { return b.dy - a.dy; });
-
-      // handlize cycles
-      link.filter( function(d) { return !d.causesCycle} )
-      .style("stroke-width", function(d) { return Math.max(1, d.dy); })
-
-      // add the link titles
-        link.append("title")
-            .text(function(d) {
-            return d.source.name + " → " +
-                   d.target.name + "\n" + format(d.value); });
-
-      // add in the nodes
-        var node = chart.append("g").selectAll(".node")
-            .data(graph.nodes)
-            .enter().append("g")
-            .attr("class", "node")
-            .attr("transform", function(d) {
-            return "translate(" + d.x + "," + d.y + ")"; })
-            .call(d3.behavior.drag()
-            .origin(function(d) { return d; })
-            .on("dragstart", function() {
-            this.parentNode.appendChild(this); })
-            .on("drag", dragmove));
-
-      // add the rectangles for the nodes
-        node.append("rect")
-            .attr("height", function(d) { return Math.max(d.dy,0); })
-            .attr("width", sankey.nodeWidth())
-            .style("fill", function(d) {
-              return d.color = color(d.name.replace(/ .*/, "")); })
-            .style("stroke", function(d) {
-              return d3.rgb(d.color).darker(2); })
-            .append("title")
-            .text(function(d) {
-              return d.name + "\n" + format(d.value); });
-
-      // add in the title for the nodes
-        node.append("text")
-            .attr("x", -6)
-            .attr("y", function(d) { return d.dy / 2; })
-            .attr("dy", ".35em")
-            .attr("text-anchor", "end")
-            .attr("transform", null)
-            .text(function(d) { return d.name; })
-            .filter(function(d) { return d.x < width / 2; })
-            .attr("x", 6 + sankey.nodeWidth())
-            .attr("text-anchor", "start");
-
-      // the function for moving the nodes
-        function dragmove(d) {
-          d3.select(this).attr("transform",
-              "translate(" + d.x + "," + (
-                      d.y = Math.max(0, Math.min(height - d.dy, d3.event.y))
-                  ) + ")");
-          sankey.relayout();
-          link.attr("d", path);
-        };
-
-      // more cycles stuff
-      var numCycles = 0;
-        for( var i = 0; i< sankey.links().length; i++ ) {
-          if( sankey.links()[i].causesCycle ) {
-            numCycles++;
-          }
-        }
-      var cycleTopMarginSize = (sankey.cycleLaneDistFromFwdPaths() -
-            ( (sankey.cycleLaneNarrowWidth() + sankey.cycleSmallWidthBuffer() ) * numCycles ) )
-      var horizontalMarginSize = ( sankey.cycleDistFromNode() + sankey.cycleControlPointDist() );
-
-
+      return false;
+    } else {
+      this.clearErrors("pivot-req");
     }
-  };
-  looker.plugins.visualizations.add(viz);
 
-}());
+    if (resp.fields.pivots.length < min_piv) {
+      this.addError({
+        group: "pivot-req",
+        title: "Incompatible Data",
+        message: "Add a Pivot"
+      });
+      return false;
+    } else {
+      this.clearErrors("pivot-req");
+    }
+
+    if (max_dim && resp.fields.dimensions.length > max_dim) {
+      this.addError({
+        group: "dim-req",
+        title: "Incompatible Data",
+        message: "You need " + min_dim +" to "+ max_dim +" dimensions"
+      });
+      return false;
+    } else {
+      this.clearErrors("dim-req");
+    }
+
+    if (resp.fields.dimensions.length < min_dim) {
+      this.addError({
+        group: "dim-req",
+        title: "Incompatible Data",
+        message: "You need " + min_dim + max_dim ? " to "+ max_dim : "" +" dimensions"
+      });
+      return false;
+    } else {
+      this.clearErrors("dim-req");
+    }
+
+    if (max_mes && resp.fields.measure_like.length > max_mes) {
+      this.addError({
+        group: "mes-req",
+        title: "Incompatible Data",
+        message: "You need " + min_mes +" to "+ max_mes +" measures"
+      });
+      return false;
+    } else {
+      this.clearErrors("mes-req");
+    }
+
+    if (resp.fields.measure_like.length < min_mes) {
+      this.addError({
+        group: "mes-req",
+        title: "Incompatible Data",
+        message: "You need " + min_mes + max_mes ? " to "+ max_mes : "" +" measures"
+      });
+      return false;
+    } else {
+      this.clearErrors("mes-req");
+    }
+
+    // If no errors found, then return true
+    return true;
+  },
+  // Set up the initial state of the visualization
+  create: function(element, config) {
+    var d3 = d3v4;
+
+    var css = element.innerHTML = `
+      <style>
+      .node,
+      .link {
+        transition: 0.5s opacity;
+      }
+      </style>
+    `;
+
+    this._svg = d3.select(element).append("svg");
+
+  },
+  // Render in response to the data or settings changing
+  update: function(data, element, config, queryResponse) {
+    if (!this.handleErrors(data, queryResponse)) return;
+    var d3 = d3v4;
+
+    var width = element.clientWidth;
+    var height = element.clientHeight;
+
+    var svg = this._svg
+      .html("")
+      .attr("width", "100%")
+      .attr("height", "100%")
+      .append("g");
+
+    var dimensions = queryResponse.fields.dimension_like;
+    var measure = queryResponse.fields.measure_like[0];
+
+    var format = formatType(measure.value_format);
+
+    var color = d3.scaleOrdinal()
+      .range(config.color_range);
+
+		var defs = svg.append('defs');
+
+		var sankey = d3.sankey()
+				.nodeWidth(10)
+				.nodePadding(12)
+				.extent([[1, 1], [width - 1, height - 6]]);
+
+		var link = svg.append("g")
+				.attr("class", "links")
+				.attr("fill", "none")
+				.attr("stroke", "#fff")
+			.selectAll("path");
+
+		var node = svg.append("g")
+				.attr("class", "nodes")
+				.attr("font-family", "sans-serif")
+				.attr("font-size", 10)
+			.selectAll("g");
+
+		var graph = {
+			nodes: [],
+			links: []
+		};
+
+		var nodes = d3.set();
+
+		data.forEach(function(d) {
+      // variable number of dimensions
+      var path = dimensions.map(function(dim) {return d[dim.name].value});
+      path.forEach(function(p,i) {
+        if (i == path.length-1) return;
+        var source = path.slice(i,i+1)[0] + i;
+        var target = path.slice(i+1,i+2)[0] + (i+1);
+        nodes.add(source);
+        nodes.add(target);
+        graph.links.push({ "source": source,
+                           "target": target,
+                           "value": +d[measure.name].value});
+      });
+		});
+
+		var nodesArray = nodes.values();
+
+		graph.links.forEach(function (d, i) {
+			d.source = nodesArray.indexOf(d.source);
+			d.target = nodesArray.indexOf(d.target);
+		});
+
+		graph.nodes = nodes.values().map(function(d) {
+			return {
+				name: d.slice(0,-1)
+			};
+		});
+
+		sankey(graph);
+
+		link = link
+			.data(graph.links)
+			.enter().append("path")
+				.attr("class", "link")
+				.attr("d", function(d) { return "M" + -10 + "," + -10 + d3.sankeyLinkHorizontal()(d); })
+				.style("opacity", 0.4)
+				.attr("stroke-width", function(d) { return Math.max(1, d.width); })
+        .on("mouseenter", function(d) {
+          svg.selectAll(".link")
+            .style("opacity", 0.05)
+          d3.select(this)
+            .style("opacity", 0.7)
+          svg.selectAll(".node")
+            .style("opacity", function(p) {
+              if (p == d.source) return 1;
+              if (p == d.target) return 1;
+              return 0.5;
+            });
+        })
+        .on("mouseleave", function(d) {
+          d3.selectAll(".node").style("opacity", 1);
+          d3.selectAll(".link").style("opacity", 0.4);
+        });
+
+		// gradients https://bl.ocks.org/micahstubbs/bf90fda6717e243832edad6ed9f82814
+		link.style('stroke', function(d,i) {
+
+			// make unique gradient ids
+			var gradientID = "gradient" + i;
+
+			var startColor = color(d.source.name.replace(/ .*/, ""));
+			var stopColor = color(d.target.name.replace(/ .*/, ""));
+
+			var linearGradient = defs.append('linearGradient')
+					.attr('id', gradientID);
+
+			linearGradient.selectAll('stop')
+				.data([
+						{offset: '10%', color: startColor },
+						{offset: '90%', color: stopColor }
+					])
+				.enter().append('stop')
+				.attr('offset', function(d) {
+					return d.offset;
+				})
+				.attr('stop-color', function(d) {
+					return d.color;
+				});
+
+			return "url(#" + gradientID + ")";
+		})
+
+		node = node
+			.data(graph.nodes)
+			.enter().append("g")
+      .attr("class", "node")
+      .on("mouseenter", function(d) {
+        svg.selectAll(".link")
+          .style("opacity", function(p) {
+            if (p.source == d) return 0.7;
+            if (p.target  == d) return 0.7;
+            return 0.05;
+          });
+      })
+      .on("mouseleave", function(d) {
+        d3.selectAll(".link").style("opacity", 0.4);
+      });
+
+		node.append("rect")
+				.attr("x", function(d) { return d.x0; })
+				.attr("y", function(d) { return d.y0; })
+				.attr("height", function(d) { return d.y1 - d.y0; })
+				.attr("width", function(d) { return d.x1 - d.x0; })
+				.attr("fill", function(d) { return color(d.name.replace(/ .*/, "")); })
+				.attr("stroke", "#555");
+
+		node.append("text")
+				.attr("x", function(d) { return d.x0 - 6; })
+				.attr("y", function(d) { return (d.y1 + d.y0) / 2; })
+				.attr("dy", "0.35em")
+				.style("font-weight", "bold")
+				.attr("text-anchor", "end")
+				.style("fill", "#222")
+				.text(function(d) { return d.name; })
+			.filter(function(d) { return d.x0 < width / 2; })
+				.attr("x", function(d) { return d.x1 + 6; })
+				.attr("text-anchor", "start");
+
+		node.append("title")
+				.text(function(d) { return d.name + "\n" + d.value; });
+  }
+});
+

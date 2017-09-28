@@ -1,156 +1,303 @@
 looker.plugins.visualizations.add({
-  id: 'chord',
-  label: 'Chord Diagram',
-  create: function(element, settings) {
-    d3.select(element).empty();
-    d3.select(element)
-      .append("svg")
-      .attr("id", "mainchord")
-      .attr('width', '100%')
-      .attr('height', '100%');
+  id: "chord",
+  label: "Chord",
+  options: {
+    color_range: {
+      type: "array",
+      label: "Color Range",
+      display: "colors",
+      default: ["#dd3333", "#80ce5d", "#f78131", "#369dc1", "#c572d3", "#36c1b3", "#b57052", "#ed69af"],
+    },
   },
-  update: function(data, element, settings, resp) {
+  // require proper data input
+  handleErrors: function(data, resp) {
+    var min_mes, max_mes, min_dim, max_dim, min_piv, max_piv;
+    min_mes = 1
+    max_mes = 1
+    min_dim = 2
+    max_dim = 2
+    min_piv = 0
+    max_piv = 0
 
-    var dim = resp.fields.dimensions[0].name,
-      piv = resp.fields.pivots[0].name,
-      mes = resp.fields.measure_like[0].name;
-
-    var source = []
-    for (var i = data.length - 1; i >= 0; i--) {
-      source[i] = data[i][dim].value;
-    };
-    y = [];
-    for (var i = source.length - 1; i >= 0; i--) {
-      x = [];
-      for (var j = source.length - 1; j >= 0; j--) {
-        x.push(data[j][mes][source[i]].value);
-      }
-      y.push(x);
+    if (resp.fields.pivots.length > max_piv) {
+      this.addError({
+        group: "pivot-req",
+        title: "Incompatible Data",
+        message: "No pivot is allowed"
+      });
+      return false;
+    } else {
+      this.clearErrors("pivot-req");
     }
 
-    var myColors = d3.scale.category10();
+    if (resp.fields.pivots.length < min_piv) {
+      this.addError({
+        group: "pivot-req",
+        title: "Incompatible Data",
+        message: "Add a Pivot"
+      });
+      return false;
+    } else {
+      this.clearErrors("pivot-req");
+    }
 
-    // Make data source
-    var matrix = y;
-    var colors = [];
-    for (var i = source.length - 1; i >= 0; i--) {
-      var color = new Object();
-      color.name = source[i];
-      color.color = myColors(i);
-      colors.push(color);
+    if (resp.fields.dimensions.length > max_dim) {
+      this.addError({
+        group: "dim-req",
+        title: "Incompatible Data",
+        message: "You need " + min_dim +" to "+ max_dim +" dimensions"
+      });
+      return false;
+    } else {
+      this.clearErrors("dim-req");
+    }
+
+    if (resp.fields.dimensions.length < min_dim) {
+      this.addError({
+        group: "dim-req",
+        title: "Incompatible Data",
+        message: "You need " + min_dim +" to "+ max_dim +" dimensions"
+      });
+      return false;
+    } else {
+      this.clearErrors("dim-req");
+    }
+
+    if (resp.fields.measure_like.length > max_mes) {
+      this.addError({
+        group: "mes-req",
+        title: "Incompatible Data",
+        message: "You need " + min_mes +" to "+ max_mes +" measures"
+      });
+      return false;
+    } else {
+      this.clearErrors("mes-req");
+    }
+
+    if (resp.fields.measure_like.length < min_mes) {
+      this.addError({
+        group: "mes-req",
+        title: "Incompatible Data",
+        message: "You need " + min_mes +" to "+ max_mes +" measures"
+      });
+      return false;
+    } else {
+      this.clearErrors("mes-req");
+    }
+
+    // If no errors found, then return true
+    return true;
+  },
+  // Set up the initial state of the visualization
+  create: function(element, config) {
+    var d3 = d3v4;
+
+    var css = element.innerHTML = `
+      <style>
+        .chordchart circle {
+          fill: none;
+          pointer-events: all;
+        }
+
+        .chordchart:hover path.chord-fade {
+          display: none;
+        }
+
+        .groups text {
+          font-size: 12px;
+        }
+
+        .chord-tip {
+          position: absolute;
+          top: 0;
+          left: 0;
+          z-index: 10;
+        }
+      </style>
+    `;
+
+    this._tooltip = d3.select(element).append('div').attr('class', 'chord-tip');
+
+    this._svg = d3.select(element).append("svg");
+
+  },
+
+  computeMatrix: function(data, dimensions, measure) {
+    var indexByName = d3.map();
+    var nameByIndex = d3.map();
+    var matrix = [];
+    var n = 0;
+
+    // Compute a unique index for each package name.
+    dimensions.forEach(function(dimension) {
+      data.forEach(function(d) {
+        if (!indexByName.has(d = d[dimension].value )) {
+          nameByIndex.set(n, d);
+          indexByName.set(d, n++);
+        }
+      });
+    });
+
+    // Construct a square matrix
+    for (var i = -1; ++i < n;) {
+      matrix[i] = [];
+      for (var t = -1; ++t < n;) {
+        matrix[i][t] = 0;
+      }
+    }
+
+    // Fill matrix
+    data.forEach(function(d) {
+      var row = indexByName.get(d[dimensions[1]].value);
+      var col = indexByName.get(d[dimensions[0]].value);
+      var val = d[measure].value;
+      matrix[row][col] = val;
+    });
+
+    return {
+      matrix: matrix,
+      indexByName: indexByName,
+      nameByIndex: nameByIndex
     };
+  },
 
-    var width = $("#mainchord").width(),
-      height = $("#mainchord").height(),
-      outerRadius = Math.min(width, height) / 2 - 10,
-      innerRadius = outerRadius - 24;
+  // Render in response to the data or settings changing
+  update: function(data, element, config, queryResponse) {
+    if (!this.handleErrors(data, queryResponse)) return;
+    var d3 = d3v4;
+    var _self = this;
 
-    var formatPercent = d3.format(".1%");
+    var dimensions = queryResponse.fields.dimension_like;
+    var measure = queryResponse.fields.measure_like[0];
 
-    var arc = d3.svg.arc()
+    // Set dimensions
+    var width = element.clientWidth;
+    var height = element.clientHeight;
+    var margin = 10;
+    var thickness = 15;
+    var outerRadius = Math.min(width, height) * 0.5;
+    var innerRadius = outerRadius - thickness;
+
+    // Stop if radius is < 0
+    // TODO: show warning to user ???
+    // TODO: Set a min-radius ???
+    if (innerRadius < 0) return;
+
+    var valueFormatter = formatType(measure.value_format);
+
+    var tooltip = this._tooltip;
+
+    // Set color scale
+    var color = d3.scaleOrdinal()
+      .range(config.color_range);
+
+    // Set chord layout
+    var chord = d3.chord()
+      .padAngle(0.025)
+      .sortSubgroups(d3.descending)
+      .sortChords(d3.descending);
+
+    // Create ribbon generator
+    var ribbon = d3.ribbon()
+      .radius(innerRadius);
+
+    // Create arc generator
+    var arc = d3.arc()
       .innerRadius(innerRadius)
       .outerRadius(outerRadius);
 
-    var layout = d3.layout.chord()
-      .padding(.04)
-      .sortSubgroups(d3.descending)
-      .sortChords(d3.ascending);
+    // Turn data into matrix
+    var matrix = this.computeMatrix(data, dimensions.map(function(d) {return d.name}), measure.name);
 
-    var path = d3.svg.chord()
-      .radius(innerRadius);
+    // draw
+    var svg = this._svg
+      .html('')
+      .attr('width', '100%')
+      .attr('height', '100%')
+      .append('g')
+      .attr('class', 'chordchart')
+      .attr('transform', 'translate(' + width / 2 + ',' + (height / 2) + ')')
+      .datum(chord(matrix.matrix));
 
-    var svg = d3.select("#mainchord")
-      .attr("width", width)
-      .attr("height", height)
-      .append("g")
-      .attr("id", "circle")
-      .attr("fill", "white")
-      .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+    svg.append('circle')
+      .attr('r', outerRadius);
 
-    svg.append("circle")
-      .attr("r", outerRadius);
+    var group = svg.append('g')
+      .attr('class', 'groups')
+      .selectAll('g')
+      .data(function(chords) { return chords.groups; })
+      .enter().append('g')
+      .on('mouseover', mouseover);
 
-    var fill = d3.scale.ordinal()
-      .domain(d3.range(4));
-    myfunction();
+    var groupPath = group.append('path')
+      .style('opacity', 0.8)
+      .style('fill', function(d) { return color(d.index); })
+      .style('stroke', function(d) { return d3.rgb(color(d.index)).darker(); })
+      .attr("id", function(d, i) { return "group" + i; })
+      .attr('d', arc);
 
-    function myfunction() {
-      // Compute the chord layout.
-      layout.matrix(matrix);
+    var groupPathNodes = groupPath.nodes();
 
-      // Add a group per neighborhood.
-      var group = svg.selectAll(".group")
-        .data(layout.groups)
-        .enter().append("g")
-        .attr("class", "group")
-        .on("mouseover", fade(.1))
-        .on("mouseout", fade(1));
+    var groupText = group.append('text').attr('dy', 11);
 
-      // Add a mouseover title.
-      group.append("title").text(function(d, i) {
-        return colors[i].name + ": " + Math.floor(d.value);
+    groupText.append('textPath')
+      .attr('xlink:href', function(d, i) { return '#group' + i; })
+      .attr("startOffset",function(d,i) { return (groupPathNodes[i].getTotalLength() - (thickness * 2)) / 4 })
+      .style("text-anchor","middle")
+      .text(function(d) { return matrix.nameByIndex.get(d.index); });
+
+
+    // Remove the labels that don't fit. :(
+    groupText
+      .filter(function(d, i) {
+        return groupPathNodes[i].getTotalLength() / 2 - 16 < this.getComputedTextLength();
+      })
+      .remove();
+
+    var ribbons = svg.append('g')
+      .attr('class', 'ribbons')
+      .selectAll('path')
+      .data(function(chords) { return chords; })
+      .enter().append('path')
+      .style('opacity', 0.8)
+      .attr('d', ribbon)
+      .style('fill', function(d) { return color(d.target.index); })
+      .style('stroke', function(d) { return d3.rgb(color(d.target.index)).darker(); })
+      .on('mouseenter', function(d) {
+        tooltip.html(_self.titleText(matrix.nameByIndex, d.source, d.target, valueFormatter))
+      })
+      .on('mouseleave', function(d) {
+        tooltip.html('');
       });
 
-      // Add the group arc.
-      var groupPath = group.append("path")
-        .attr("id", function(d, i) {
-          return "group" + i;
-        })
-        .attr("d", arc)
-        .style("fill", function(d, i) {
-          return colors[i].color;
-        });
-
-      // Add a text label.
-      var groupText = group.append("text")
-        .attr("x", 6)
-        .attr("dy", 15);
-
-      groupText.append("textPath")
-        .attr("xlink:href", function(d, i) {
-          return "#group" + i;
-        })
-        .text(function(d, i) {
-          return colors[i].name;
-        });
-
-      // Remove the labels that don't fit. :(
-      groupText.filter(function(d, i) {
-          return groupPath[0][i].getTotalLength() / 2 - 16 < this.getComputedTextLength();
-        })
-        .remove();
-
-      // Add the chords.
-      var chord = svg.selectAll(".chord")
-        .data(layout.chords)
-        .enter().append("path")
-        .attr("class", "chord")
-        .style("fill", function(d) {
-          return colors[d.source.index].color;
-        })
-        .style("stroke", "gray")
-        .attr("d", path);
-
-      // Add an elaborate mouseover title for each chord.
-      chord.append("title").text(function(d) {
-        return colors[d.source.index].name +
-          " → " + colors[d.target.index].name +
-          ": " + (d.source.value) +
-          "\n" + colors[d.target.index].name +
-          " → " + colors[d.source.index].name +
-          ": " + (d.target.value);
+    function mouseover(d, i) {
+      ribbons.classed('chord-fade', function(p) {
+        return p.source.index != i &&
+          p.target.index != i;
       });
+    }
 
-      function fade(opacity) {
-        return function(g, i) {
-          svg.selectAll(".chord")
-            .filter(function(d) {
-              return d.source.index != i && d.target.index != i;
-            })
-            .transition()
-            .style("opacity", opacity);
-        };
-      }
-    };
+  },
+
+  titleText: function(lookup, source, target, formatter) {
+    var sourceName = lookup.get(source.index);
+    var sourceValue = formatter(source.value);
+    var targetName = lookup.get(target.index);
+    var targetValue = formatter(target.value);
+
+    var output = '<p>' + sourceName + ' → ' + targetName + ': ' + sourceValue + '</p>';
+    output += '<p>' + targetName + ' → ' + sourceName + ': ' + targetValue + '</p>';
+
+    return output;
+    /*
+    return lookup.get(source.index)
+    + " → " + lookup.get(target.index)
+    + ": " + formatter(source.value)
+    + "\n" + lookup.get(target.index)
+    + " → " + lookup.get(source.index)
+    + ": " + formatter(target.value);
+    */
   }
+
 });
+

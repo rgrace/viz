@@ -1,263 +1,253 @@
-// This treemap requires 1 measure and one or two dimensions. 
-/// The first dimension will be color when two are present
-///
-// WARNING: This file will get overwritten whenever Looker restarts.
-
-/* TODOS
- -- options: colors, text size/color, line/border
- -- tooltips
- -- legend / filter
- -- headers for categories w/ drill
-*/
-
-(function() {
 looker.plugins.visualizations.add({
-  id: 'treemap',
-  label: 'Treemap',
+  id: "treemap",
+  label: "Treemap",
   options: {
-    //start options
-   /*   colorRange: {
-      type: 'array',
-      label: 'Color Ranges',
-      section: 'Style',
-      placeholder: '#fff, red, etc...',
-      order: 5
+    color_range: {
+      type: "array",
+      label: "Color Range",
+      display: "colors",
+      default: ["#dd3333", "#80ce5d", "#f78131", "#369dc1", "#c572d3", "#36c1b3", "#b57052", "#ed69af"],
     },
-      textColor: {
-      type: 'array',
-      label: 'Text Color',
-      section: 'Style',
-      placeholder: '#fff',
-      order: 6
-    },*/
-
-    dynamicFontSize: {
-      type: 'boolean',
-      label: 'Dynamic Font Size',
-      section: 'Style',
-      order: 1
-    }
-
-// end options
   },
- 
- handleErrors: function(data, resp) {
+  // require proper data input
+  handleErrors: function(data, resp) {
+    var min_mes, max_mes, min_dim, max_dim, min_piv, max_piv;
+    min_mes = 1
+    max_mes = 1
+    min_dim = 1
+    max_dim = undefined
+    min_piv = 0
+    max_piv = 0
 
-    if (!resp || !resp.fields) return null;
-    if (!(resp.fields.dimension_like.length == 1 || resp.fields.dimensions.length == 2)) {
+    if (resp.fields.pivots.length > max_piv) {
       this.addError({
-        group: 'dimension-req',
-        title: 'Incompatible Data',
-        message: 'One or two dimension is required'
+        group: "pivot-req",
+        title: "Incompatible Data",
+        message: "No pivot is allowed"
       });
       return false;
     } else {
-      this.clearErrors('dimension-req');
+      this.clearErrors("pivot-req");
     }
-    if (resp.fields.pivots.length >= 1) {
+
+    if (resp.fields.pivots.length < min_piv) {
       this.addError({
-        group: 'pivot-req',
-        title: 'Incompatible Data',
-        message: 'No pivot is allowed'
+        group: "pivot-req",
+        title: "Incompatible Data",
+        message: "Add a Pivot"
       });
       return false;
     } else {
-      this.clearErrors('pivot-req');
+      this.clearErrors("pivot-req");
     }
-    if (resp.fields.measure_like.length > 1) {
+
+    if (max_dim && resp.fields.dimensions.length > max_dim) {
       this.addError({
-        group: 'measure-req',
-        title: 'Incompatible Data',
-        message: 'One measure is required'
+        group: "dim-req",
+        title: "Incompatible Data",
+        message: "You need " + min_dim +" to "+ max_dim +" dimensions"
       });
       return false;
     } else {
-      this.clearErrors('measure-req');
+      this.clearErrors("dim-req");
     }
+
+    if (resp.fields.dimensions.length < min_dim) {
+      this.addError({
+        group: "dim-req",
+        title: "Incompatible Data",
+        message: "You need " + min_dim + max_dim ? " to "+ max_dim : "" +" dimensions"
+      });
+      return false;
+    } else {
+      this.clearErrors("dim-req");
+    }
+
+    if (max_mes && resp.fields.measure_like.length > max_mes) {
+      this.addError({
+        group: "mes-req",
+        title: "Incompatible Data",
+        message: "You need " + min_mes +" to "+ max_mes +" measures"
+      });
+      return false;
+    } else {
+      this.clearErrors("mes-req");
+    }
+
+    if (resp.fields.measure_like.length < min_mes) {
+      this.addError({
+        group: "mes-req",
+        title: "Incompatible Data",
+        message: "You need " + min_mes + max_mes ? " to "+ max_mes : "" +" measures"
+      });
+      return false;
+    } else {
+      this.clearErrors("mes-req");
+    }
+
+    // If no errors found, then return true
     return true;
   },
+  // Set up the initial state of the visualization
+  create: function(element, config) {
+    var d3 = d3v4;
 
+    this._svg = d3.select(element).append("svg");
 
-  create: function(element, settings) {
-      
-   //   selectAll("chart").remove();
-    //console.log(element);
-      d3.selectAll("#chart").remove();
-      var chart1 = d3.select(element)
-        .append('div')
-        .attr('width', '100%')
-        .attr('height', '100%')                 
-        .attr('id', 'chart');
-
-  this.update();
-      
-
-      
   },
-  update: function(data, element, settings, resp) {
-    if (!this.handleErrors(data, resp)) return;
+  // Render in response to the data or settings changing
+  update: function(data, element, config, queryResponse) {
+    if (!this.handleErrors(data, queryResponse)) return;
+    var d3 = d3v4;
 
-// process daterz
-Array.prototype.contains = function(v) {
-    for(var i = 0; i < this.length; i++) {
-        if(this[i] === v) return true;
-    }
-    return false;
-};
+    var width = element.clientWidth;
+    var height = element.clientHeight;
 
-Array.prototype.unique = function() {
-    var arr = [];
-    for(var i = 0; i < this.length; i++) {
-        if(!arr.contains(this[i])) {
-            arr.push(this[i]);
+    var dimensions = queryResponse.fields.dimension_like;
+    var measure = queryResponse.fields.measure_like[0];
+
+    var format = formatType(measure.value_format);
+
+    var color = d3.scaleOrdinal()
+      .range(config.color_range)
+
+    data.forEach(function(row) {
+      row.taxonomy = dimensions.map(function(dim) {return row[dim.name].value})
+    });
+
+    var treemap = d3.treemap()
+        .size([width, height-16])
+        .tile(d3.treemapSquarify.ratio(1))
+        .paddingOuter(1)
+				.paddingTop(function(d) {
+          return d.depth == 1 ? 16 : 0;
+        })
+        .paddingInner(1)
+        .round(true);
+
+    var svg = this._svg
+      .html("")
+      .attr("width", "100%")
+      .attr("height", "100%")
+      .append("g")
+      .attr("transform", "translate(0,16)");
+
+    var breadcrumb = svg.append("text")
+      .attr("y", -5)
+      .attr("x", 4);
+
+    var root = d3.hierarchy(burrow(data))
+      .sum(function(d) { return ("data" in d) ? d.data[measure.name].value : 0; });
+    treemap(root);
+
+    var cell = svg.selectAll(".node")
+        .data(root.descendants())
+      .enter().append("g")
+        .attr("transform", function(d) { return "translate(" + d.x0 + "," + d.y0 + ")"; })
+        .attr("class", function(d,i) { return "node depth-" + d.depth; })
+        .style("stroke-width", 1.5)
+        .style("cursor", "pointer")
+        .on("click", function(d) { console.log(d);})
+        .on("mouseenter", function(d) {
+          var ancestors = d.ancestors();
+          breadcrumb.text(ancestors.map(function(p) { return p.data.name }).slice(0,-1).reverse().join("-") + ": " + format(d.value));
+          svg.selectAll("g.node rect")
+            .style("stroke", null)
+            .filter(function(p) {
+              return ancestors.indexOf(p) > -1;
+            })
+            .style("stroke", function(p) {
+              var scale = d3.scaleLinear()
+                .domain([1,12])
+                .range([color(d.ancestors().map(function(p) { return p.data.name }).slice(-2,-1)),"#ddd"])
+              return "#fff";
+            });
+        })
+        .on("mouseleave", function(d) {
+          breadcrumb.text("");
+          svg.selectAll("g.node rect")
+            .style("stroke", function(d) {
+              return null;
+            })
+        });
+
+    cell.append("rect")
+      .attr("id", function(d,i) { return "rect-" + i; })
+      .attr("width", function(d) { return d.x1 - d.x0; })
+      .attr("height", function(d) { return d.y1 - d.y0; })
+      .style("fill", function(d) {
+        if (d.depth == 0) return "none";
+        var scale = d3.scaleLinear()
+          .domain([1,6.5])
+          .range([color(d.ancestors().map(function(p) { return p.data.name }).slice(-2,-1)),"#ddd"])
+        return scale(d.depth);
+      });
+
+		cell.append("clipPath")
+				.attr("id", function(d,i) { return "clip-" + i; })
+			.append("use")
+				.attr("xlink:href", function(d,i) { return "#rect-" + i; });
+
+		var label = cell
+        .append("text")
+        .style("opacity", function(d) {
+          if (d.depth == 1) return 1;
+          return 0;
+        })
+				.attr("clip-path", function(d,i) { return "url(#clip-" + i + ")"; })
+				.attr("y", function(d) {
+          return d.depth == 1 ? "13" : "10";
+        })
+				.attr("x", 2)
+				.style("font-family", "Helvetica, Arial, sans-serif")
+        .style("fill", "white")
+				.style("font-size", function(d) {
+          return d.depth == 1 ? "14px" : "10px";
+        })
+				.text(function(d) { return d.data.name == "root" ? "" : d.data.name; });
+
+    function burrow(table) {
+      // create nested object
+      var obj = {};
+      table.forEach(function(row) {
+        // start at root
+        var layer = obj;
+
+        // create children as nested objects
+        row.taxonomy.forEach(function(key) {
+          layer[key] = key in layer ? layer[key] : {};
+          layer = layer[key];
+        });
+        layer.__data = row;
+      });
+
+      // recursively create children array
+      var descend = function(obj, depth) {
+        var arr = [];
+        var depth = depth || 0;
+        for (var k in obj) {
+          if (k == "__data") { continue; }
+          var child = {
+            name: k,
+            depth: depth,
+            children: descend(obj[k], depth+1)
+          };
+          if ("__data" in obj[k]) {
+            child.data = obj[k].__data;
+          }
+          arr.push(child);
         }
-    }
-    return arr; 
-}
+        return arr;
+      };
 
-
-
-
-//console.log(data);
-//console.log(resp);
-
-
-var parent_name = resp.fields.dimension_like[0].name
-var measure = resp.fields.measure_like[0].name;
-
-if (resp.fields.dimension_like.length==2)
-  {
-    var dimension = resp.fields.dimension_like[1].name;
-  } else {
-    var dimension = resp.fields.dimension_like[0].name;
-  };
-
-//console.log(parent_name);
-//console.log(dimension);
-//console.log(measure);
-
-var parents = []
-    for (var i = data.length - 1; i >= 0; i--) {
-        parents[i] = data[i][parent_name].value; 
+      // use descend to create nested children arrys
+      return {
+        name: "root",
+        children: descend(obj, 1),
+        depth: 0
+      }
     };
 
-//console.log(parents.unique());
-
-var newdata = [];
-var children = [];
-
-var unique_parents = parents.unique();
-var c = 0;
-var p = 0;
-
-for (var x = unique_parents.length - 1; x >= 0; x--) {
-    c = 0;
-        
-
-        for (var i = data.length - 1; i >= 0; i--) {
-//              console.log(c);
-//              console.log(unique_parents[x]);
-//             console.log(data[i][parent_name]);
-              if (data[i][parent_name].value ==  unique_parents[x]){
-                
-
-                children[c] = {"name":  data[i][dimension].value , "value":  data[i][measure].value};
-                c++;
-//                console.log("match");
-                }
-
-      };
-  //            console.log(children);
-    newdata[p] = {"name":unique_parents[x],"children":children};
-    children=[];
-    //console.log(newdata[p])
-    p++;
-};
-    
-
-//console.log(newdata);
-var root = {"name":"tree","children":newdata};
-//var root = newdata;
-
-  
-// daterz is goodz
-
-var margin = {top: 40, right: 10, bottom: 10, left: 10},
-    width = $("#chart").width()- margin.left - margin.right,
-    height = $("#chart").parent().height() - margin.top - margin.bottom;
-
-var color = d3.scale.category20c();
-//console.log(color("Calvin Klein"));
-
-var treemap = d3.layout.treemap()
-    .size([width, height])
-    .sticky(true)
-    .value(function(d) { return d.value; });
-
-var div = d3.select("#chart").append("div")
-    .style("position", "relative")
-    .style("width", "100%")//(width + margin.left + margin.right) + "px")
-    .style("height", "100%")//(height + margin.top + margin.bottom) + "px")
-    .style("left", margin.left + "px")
-    .style("top", margin.top + "px");
-
-//d3.json("/plugins/visualizations/flare.json", function(error, root) {
-/*
-var node = div.datum(tree).selectAll(".node")
-      .data(treemap.value( function(d) { return d.size; }).nodes)
-      .enter().append("div")
-      .attr("class", "node")
-      .style("position","absolute")
-      .style("border","solid 1px white")
-      .call(position)
-      .append('div')
-      .style("background", function(d) { return d.children ? color(d.name) : null; })
-      .style("font-size", function(d) {
-          // compute font size based on sqrt(area)
-          return Math.max(12, 0.18*Math.sqrt(d.area))+'px'; })
-      .text(function(d) { return d.children ? null : d.name; });
-*/
-console.log(settings.dynamicFontSize);
-
-
-  var node = div.selectAll(".node")
-      .data(treemap.nodes(root))
-    .enter().append("div")
-      .attr("class", "node")
-      .style("position","absolute")
-      .style("overflow","hidden")
-      .style("border", "1px solid #FFFFFF")
-      .style("background", function(d) { return d.children ? color(d.name) : null; } || '#FFFFFF' )
-      //.attr("id", function(d) { return d.name })
-      .style("font-size", function(d) {
-          // compute font size based on sqrt(area)
-          return  settings.dynamicFontSize ? ( d.children ? null : Math.max(20, 0.18*Math.sqrt(d.area))-10+'px' ) : '12px' ; })
-      .call(position) 
-      .text(function(d) { return d.children ? null : d.name; });
-
-//console.log(root);
-
-    //console.log("json");
-
-function position() {
-  this.style("left", function(d) { return d.x + "px"; })
-      .style("top", function(d) { return d.y + "px"; })
-      .style("width", function(d) { return Math.max(0, d.dx - 1) + "px"; })
-      .style("height", function(d) { return Math.max(0, d.dy - 1) + "px"; });
-}
-  },
-
-
-
-
-
-
+  }
 });
-
-
-
-
-
-}());
-
 
