@@ -1,5 +1,7 @@
-function calendarView(element, formattedData) {
+function calendarView(element, formattedData, color_range) {
   var d3 = d3v4;
+
+  var data = formattedData.data;
 
   function monthPath(t0) {
     var t1 = new Date(t0.getFullYear(), t0.getMonth() + 1, 0),
@@ -15,25 +17,25 @@ function calendarView(element, formattedData) {
   var format = d3.timeFormat("%Y-%m-%d");
   var parseDate = d3.timeParse("%Y-%m-%d");
 
-  let minYear = d3.min(formattedData.keys(), function(d) { return parseDate(d).getFullYear(); })
-  let maxYear = d3.max(formattedData.keys(), function(d) { return parseDate(d).getFullYear(); })
+  let minYear = d3.min(data.keys(), function(d) { return parseDate(d).getFullYear(); })
+  let maxYear = d3.max(data.keys(), function(d) { return parseDate(d).getFullYear(); })
 
   let yearLength = maxYear - minYear + 1
 
-  let minY = d3.min(formattedData.values(), function(d) { return d; })
-  let maxY = d3.max(formattedData.values(), function(d) { return d; })
+  let minY = d3.min(data.values(), function(d) { return d; })
+  let maxY = d3.max(data.values(), function(d) { return d; })
 
   var heightCellRatio = 9
       widthCellRatio = 55;
 
-  var cellSize = d3.min([(element.offsetWidth - 20) / widthCellRatio, element.offsetHeight / yearLength / heightCellRatio])
+  var cellSize = d3.max([d3.min([(element.offsetWidth - 20) / widthCellRatio, element.offsetHeight / yearLength / heightCellRatio]), 1])
       width = cellSize * widthCellRatio
       yearHeight = cellSize * heightCellRatio
       height = yearHeight * yearLength;
 
   var color = d3.scaleQuantize()
       .domain([minY, maxY])
-      .range(["#a50026", "#d73027", "#f46d43", "#fdae61", "#fee08b", "#ffffbf", "#d9ef8b", "#a6d96a", "#66bd63", "#1a9850", "#006837"]);
+      .range(color_range);
 
   var svg = d3.select(element)
     .selectAll("svg")
@@ -80,21 +82,23 @@ function calendarView(element, formattedData) {
     .style("z-index", "10")
     .style("visibility", "hidden")
 
-  rect.filter(function(d) { return formattedData.has(d); })
-      .attr("fill", function(d) { return color(formattedData.get(d)); })
+  rect.filter(function(d) { return data.has(d); })
+      .attr("fill", function(d) { return color(data.get(d)); })
     .append("title")
-      .text(function(d) { return d + ": " + formattedData.get(d); })
+      .text(function(d) { return d + ": " + formattedData.formatter(data.get(d)); })
     .on("mouseenter", function(d) {
       tooltip.style("visibility", "visible");
       d.style("fill-opacity", .15);
       tooltip.transition()
-              .duration(200)
-              .style("opacity", .9);
-      tooltip.text(function(d) { return d + ": " + formattedData.get(d); })
+        .duration(10)
+        .style("opacity", .9)
+        .style("visibility", "visible");
+      tooltip.text(function(d) { return d + ": " + formattedData.formatter(data.get(d)); })
         .style("left",  (d3.event.pageX)+30 + "px")
         .style("top", (d3.event.pageY) + "px");
     })
     .on("mouseleave", function(d) {
+      console.log("leave")
       tooltip.text("")
         .style("visibility", "hidden");
       d.style("fill-opacity", 1);
