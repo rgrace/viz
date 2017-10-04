@@ -1,5 +1,4 @@
 (function() {
-  var d3 = d3v4;
   var viz = {
     id: "highcharts_arearange",
     label: "Arearange",

@@ -1,5 +1,4 @@
 (function() {
-  var d3 = d3v4;
   var viz = {
     id: "highcharts_spiderweb",
     label: "Spiderweb",
@@ -95,35 +94,6 @@
     // Render in response to the data or settings changing
     update: function(data, element, config, queryResponse) {
       if (!this.handleErrors(data, queryResponse)) return;
-
-      function formatType(valueFormat) {
-        if (typeof valueFormat != "string") {
-          return function (x) {return x}
-        }
-        let format = ""
-        switch (valueFormat.charAt(0)) {
-          case '$':
-            format += '$'; break
-          case '£':
-            format += '£'; break
-          case '€':
-            format += '€'; break
-        }
-        if (valueFormat.indexOf(',') > -1) {
-          format += ','
-        }
-        splitValueFormat = valueFormat.split(".")
-        format += '.'
-        format += splitValueFormat.length > 1 ? splitValueFormat[1].length : 0
-
-        switch(valueFormat.slice(-1)) {
-          case '%':
-            format += '%'; break
-          case '0':
-            format += 'f'; break
-        }
-        return d3.format(format)
-      }
 
       let x = queryResponse.fields.dimension_like[0]
       let measures = queryResponse.fields.measure_like

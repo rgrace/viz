@@ -1,5 +1,4 @@
 (function() {
-  var d3 = d3v4;
   var viz = {
     id: "highcharts_histogram",
     label: "Histogram",
@@ -114,6 +113,7 @@
     // Render in response to the data or settings changing
     update: function(data, element, config, queryResponse) {
       if (!this.handleErrors(data, queryResponse)) return;
+      let d3 = d3v4;
 
       let x = queryResponse.fields.dimension_like[0]
       let y = queryResponse.fields.measure_like[0]
@@ -135,29 +135,6 @@
         }
         return value
       }
-
-      // function fieldExtent(data, field) {
-      //   let [min, max] = [null, null]
-      //   let categories = null
-      //   let fieldScale = null
-
-      //   if (field.is_timeframe || field.is_numeric) {
-      //     [min, max] = d3.extent(data, function(d) {return aesthetic(d, field)})
-      //   } else {
-      //     categories = d3.map(data, function(d) {return aesthetic(d, field)}).keys()
-      //     fieldScale = d3.scaleOrdinal()
-      //       .domain(categories)
-      //       .range(d3.range(0, categories.length, 1))
-      //   }
-      //   return {
-      //     min: min,
-      //     max: max,
-      //     categories: categories,
-      //     fieldScale: fieldScale,
-      //   }
-      // }
-
-      // let xExtent = fieldExtent(data, x)
 
       function histogram(data, count, aesthetic) {
         var extent = d3.extent(data, aesthetic)

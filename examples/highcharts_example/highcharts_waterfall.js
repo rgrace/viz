@@ -1,5 +1,4 @@
 (function() {
-  var d3 = d3v4;
   var viz = {
     id: "highcharts_waterfall",
     label: "Waterfall",
@@ -111,38 +110,6 @@
     // Render in response to the data or settings changing
     update: function(data, element, config, queryResponse) {
       if (!this.handleErrors(data, queryResponse)) return;
-
-      function formatType(valueFormat, significantDigits) {
-        if (typeof valueFormat != "string") {
-          return function (x) {return x}
-        }
-        let format = ""
-        switch (valueFormat.charAt(0)) {
-          case '$':
-            format += '$'; break
-          case '£':
-            format += '£'; break
-          case '€':
-            format += '€'; break
-        }
-        if (valueFormat.indexOf(',') > -1) {
-          format += ','
-        }
-        splitValueFormat = valueFormat.split(".")
-        format += '.'
-        if (splitValueFormat.length > 1) {
-          format += d3.min([splitValueFormat[1].length, significantDigits])
-        } else {
-          format += 0
-        }
-        switch(valueFormat.slice(-1)) {
-          case '%':
-            format += '%'; break
-          case '0':
-            format += 'f'; break
-        }
-        return d3.format(format)
-      }
 
       function diff(a) {
         return a.slice(1).map(function(n, i) { return n - a[i]; });
