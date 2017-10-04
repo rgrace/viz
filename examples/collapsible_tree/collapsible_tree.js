@@ -68,27 +68,6 @@ looker.plugins.visualizations.add({
       this.clearErrors("dim-req");
     }
 
-    if (!resp.fields.dimensions[0].is_timeframe) {
-      this.addError({
-          group: "dim-date",
-          title: "Incompatible Data",
-          message: "You need a date dimension"
-        });
-      return false;
-      if(resp.fields.dimensions[0].field_group_variant != "Date") {
-        this.addError({
-          group: "dim-date",
-          title: "Incompatible Data",
-          message: "You need a date dimension"
-        });
-        return false;
-      } else {
-        this.clearErrors("dim-date");
-      }
-    } else {
-      this.clearErrors("dim-date");
-    }
-
     if (max_mes && resp.fields.measure_like.length > max_mes) {
       this.addError({
         group: "mes-req",
