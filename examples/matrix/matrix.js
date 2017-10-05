@@ -8,6 +8,13 @@ looker.plugins.visualizations.add({
       display: "colors",
       default: ["#fcfbfd","#efedf5","#dadaeb","#bcbddc","#9e9ac8","#807dba","#6a51a3","#4a1486"],
     },
+    logarithmicScale: {
+      label: "Logarithmic",
+      type: "boolean",
+      default: true,
+      display_size: "half",
+      order: 0,
+    },
   },
   // Set up the initial state of the visualization
   create: function(element, config) {
@@ -42,36 +49,43 @@ looker.plugins.visualizations.add({
     })) return;
     var d3 = d3v4;
 
-    var margin = {top: 50, right: 30, bottom: 10, left: 150};
+    var margin = {top: 100, right: 10, bottom: 10, left: 200};
     var width = element.clientWidth - margin.left - margin.right;
     var height = element.clientHeight - margin.top - margin.bottom;
-
-    // needs to be more dynamic
-    var color = d3.scaleThreshold()
-      .domain([0, 50, 1000, 5000, 50000, 100000, 200000])
-      .range(config.color_range);
 
     var size = Math.min(width,height);
 
     var svg = this._svg
-      .html("")
-      .attr("width", "100%")
-      .attr("height", "100%")
+        .html("")
+        .attr("width", element.clientWidth)
+        .attr("height", element.clientHeight)
       .append("g")
-      .attr('transform', 'translate(' + [margin.left, margin.top] + ')');
+        .attr('transform', 'translate(' + [margin.left, margin.top] + ')');
 
-    var dimension1 = queryResponse.fields.dimension_like[0].name;
-    var dimension2 = queryResponse.fields.dimension_like[1].name;
+    var dimension1 = queryResponse.fields.dimension_like[0];
+    var dimension2 = queryResponse.fields.dimension_like[1];
     var measure = queryResponse.fields.measure_like[0];
 
-    var format = formatType(measure.value_format);
+    let field_accessor = function(field) { return function(d) { return d[field.name].value }}
+    let dimension1_accessor = field_accessor(dimension1);
+    let dimension2_accessor = field_accessor(dimension2);
+    let measure_accessor = field_accessor(measure);
+    let formatted_measure_accessor = function(d) { return formatType(measure.value_format)(measure_accessor(d)) }
+
+    let colorScale = config.logarithmicScale ? d3.scaleLog() : d3.scaleLinear();
+
+    let measureExtent = d3.extent(data, measure_accessor);
+
+    let color = colorScale
+      .domain(measureExtent)
+      .range(config.color_range);
 
     var dimset1 = d3.set();
     var dimset2 = d3.set();
 
     data.forEach(function(d) {
-      dimset1.add(d[dimension1].value);
-      dimset2.add(d[dimension2].value);
+      dimset1.add(dimension1_accessor(d));
+      dimset2.add(dimension2_accessor(d));
     });
 
     var yscale = d3.scaleBand()
@@ -112,32 +126,32 @@ looker.plugins.visualizations.add({
       .attr("transform", "translate(0,0) rotate(-30)");
 
     svg.selectAll("rect")
-      .data(data)
+        .data(data)
       .enter().append("rect")
-      .attr('y', function(d) {
-        return yscale(d[dimension1].value);
-      })
-      .attr('x', function(d) {
-        return xscale(d[dimension2].value);
-      })
-      .attr('height', yscale.bandwidth())
-      .attr('width', xscale.bandwidth())
-      .style("fill", function(d) {
-        return color(d[measure.name].value);
-      })
+        .attr('y', function(d) {
+          return yscale(dimension1_accessor(d));
+        })
+        .attr('x', function(d) {
+          return xscale(dimension2_accessor(d));
+        })
+        .attr('height', yscale.bandwidth())
+        .attr('width', xscale.bandwidth())
+        .style("fill", function(d) {
+          return color(measure_accessor(d));
+        })
       .append("title")
-      .text(function(d) { return format(d[measure.name].value); });
+        .text(function(d) { return formatted_measure_accessor(d); });
 
     svg.selectAll(".x.axis text")
       .on("click", function(d) {
         var lookup = {};
 
         var filtered = data.filter(function(p) {
-          return p[dimension2].value == d;
+          return dimension2_accessor(p) == d;
         })
 
         filtered.forEach(function(p) {
-          lookup[p[dimension1].value] = p[measure.name].value;
+          lookup[dimension1_accessor(p)] = measure_accessor(p);
         });
 
         var sorted = dimset1.values()
@@ -153,7 +167,7 @@ looker.plugins.visualizations.add({
           .transition()
           .duration(800)
           .attr('y', function(d) {
-            return yscale(d[dimension1].value);
+            return yscale(dimension1_accessor(d));
           })
 
         svg.select(".y.axis")
@@ -167,11 +181,11 @@ looker.plugins.visualizations.add({
         var lookup = {};
 
         var filtered = data.filter(function(p) {
-          return p[dimension1].value == d;
+          return dimension1_accessor(p) == d;
         })
 
         filtered.forEach(function(p) {
-          lookup[p[dimension2].value] = p[measure.name].value;
+          lookup[dimension2_accessor(p)] = measure_accessor(p);
         });
 
         var sorted = dimset2.values()
@@ -187,7 +201,7 @@ looker.plugins.visualizations.add({
           .transition()
           .duration(800)
           .attr('x', function(d) {
-            return xscale(d[dimension2].value);
+            return xscale(dimension2_accessor(d));
           })
 
         svg.select(".x.axis")
