@@ -86,7 +86,7 @@ looker.plugins.visualizations.add({
   },
   // Render in response to the data or settings changing
   update: function(data, element, config, queryResponse) {
-    if (!handleErrors(vis, data, queryResponse, {
+    if (!handleErrors(this, data, queryResponse, {
       min_pivots: 0, max_pivots: 0,
       min_dimensions: 2, max_dimensions: undefined,
       min_measures: 0, max_measures: undefined,
