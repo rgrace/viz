@@ -14,85 +14,6 @@ looker.plugins.visualizations.add({
       default: '#fff',
     },
   },
-  // require proper data input
-  handleErrors: function(data, resp) {
-    var min_mes, max_mes, min_dim, max_dim, min_piv, max_piv;
-    min_mes = 0
-    max_mes = undefined
-    min_dim = 2
-    max_dim = undefined
-    min_piv = 0
-    max_piv = 0
-
-    if (resp.fields.pivots.length > max_piv) {
-      this.addError({
-        group: "pivot-req",
-        title: "Incompatible Data",
-        message: "No pivot is allowed"
-      });
-      return false;
-    } else {
-      this.clearErrors("pivot-req");
-    }
-
-    if (resp.fields.pivots.length < min_piv) {
-      this.addError({
-        group: "pivot-req",
-        title: "Incompatible Data",
-        message: "Add a Pivot"
-      });
-      return false;
-    } else {
-      this.clearErrors("pivot-req");
-    }
-
-    if (max_dim && resp.fields.dimensions.length > max_dim) {
-      this.addError({
-        group: "dim-req",
-        title: "Incompatible Data",
-        message: "You need " + min_dim +" to "+ max_dim +" dimensions"
-      });
-      return false;
-    } else {
-      this.clearErrors("dim-req");
-    }
-
-    if (resp.fields.dimensions.length < min_dim) {
-      this.addError({
-        group: "dim-req",
-        title: "Incompatible Data",
-        message: "You need " + min_dim + max_dim ? " to "+ max_dim : "" +" dimensions"
-      });
-      return false;
-    } else {
-      this.clearErrors("dim-req");
-    }
-
-    if (max_mes && resp.fields.measure_like.length > max_mes) {
-      this.addError({
-        group: "mes-req",
-        title: "Incompatible Data",
-        message: "You need " + min_mes +" to "+ max_mes +" measures"
-      });
-      return false;
-    } else {
-      this.clearErrors("mes-req");
-    }
-
-    if (resp.fields.measure_like.length < min_mes) {
-      this.addError({
-        group: "mes-req",
-        title: "Incompatible Data",
-        message: "You need " + min_mes + max_mes ? " to "+ max_mes : "" +" measures"
-      });
-      return false;
-    } else {
-      this.clearErrors("mes-req");
-    }
-
-    // If no errors found, then return true
-    return true;
-  },
   // Set up the initial state of the visualization
   create: function(element, config) {
     var d3 = d3v4;
@@ -121,7 +42,6 @@ looker.plugins.visualizations.add({
     this._svg = d3.select(element).append('svg');
 
   },
-
   burrow: function(table, taxonomy) {
     // create nested object
     var obj = {};
@@ -164,10 +84,13 @@ looker.plugins.visualizations.add({
       depth: 0
     };
   },
-
   // Render in response to the data or settings changing
   update: function(data, element, config, queryResponse) {
-    if (!this.handleErrors(data, queryResponse)) return;
+    if (!handleErrors(vis, data, queryResponse, {
+      min_pivots: 0, max_pivots: 0,
+      min_dimensions: 2, max_dimensions: undefined,
+      min_measures: 0, max_measures: undefined,
+    })) return;
     var d3 = d3v4;
 
     var nodeColors = {
