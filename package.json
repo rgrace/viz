@@ -10,5 +10,8 @@
   },
   "scripts": {
     "test": "mocha"
+  },
+  "dependencies": {
+    "canvas": "^1.6.7"
   }
 }
