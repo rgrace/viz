@@ -8,6 +8,24 @@
         label: "Chart Name",
         type: "string",
       },
+      upColor: {
+        type: "string",
+        label: "Color for increases",
+        display: "color",
+        default: "#008000",
+      },
+      downColor: {
+        type: "string",
+        label: "Color for decreases",
+        display: "color",
+        default: "#FF0000",
+      },
+      totalColor: {
+        type: "string",
+        label: "Color for totals",
+        display: "color",
+        default: "#5245ed",
+      },
       finalLabelOn: {
         section: "Waterfall",
         label: "Final Label On",
@@ -46,21 +64,18 @@
       let xCategories = data.map(function(row) {return row[x.name].value})
       let seriesData = data.map(function(row) {return row[y.name].value})
 
-      let totalColor = "#5245ed"
-      let upColor = "#008000"
-      let downColor = "#FF0000"
       // first element, deltas
-      let deltas = [{y: seriesData[0], color: totalColor}]
+      let deltas = [{y: seriesData[0], color: config.totalColor}]
         .concat(diff(seriesData))
 
       if (config.finalLabelOn) {
         xCategories.push(config.finalLabel)
-        deltas.push({y: seriesData[seriesData.length - 1], color: totalColor, isSum: true,})
+        deltas.push({y: seriesData[seriesData.length - 1], color: config.totalColor, isSum: true,})
       }
 
       let series = [{
-        upColor: upColor,
-        color: downColor,
+        upColor: config.upColor,
+        color: config.downColor,
         data: deltas,
       }]
 

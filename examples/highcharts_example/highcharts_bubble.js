@@ -8,6 +8,12 @@
         label: "Chart Name",
         type: "string",
       },
+      color_range: {
+        type: "array",
+        label: "Color Range",
+        display: "colors",
+        default: ["#dd3333", "#80ce5d", "#f78131", "#369dc1", "#c572d3", "#36c1b3", "#b57052", "#ed69af"],
+      },
       xAxisName: {
         label: "Axis Name",
         section: "X",
@@ -112,12 +118,12 @@
             tooltip: {
               pointFormat: z ? "{point.x_rendered}: {point.y_rendered}, {point.z_rendered}" : "{point.x_rendered}: {point.y_rendered}",
             },
-            // color: ,
           })
         }
       }
 
       let options = {
+        colors: config.color_range,
         credits: {
           enabled: false
         },

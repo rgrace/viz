@@ -8,6 +8,18 @@
         label: "Chart Name",
         type: "string",
       },
+      minColor: {
+        type: "string",
+        label: "Minimum Color",
+        display: "color",
+        default: "#fee8c8",
+      },
+      maxColor: {
+        type: "string",
+        label: "Maximum Color",
+        display: "color",
+        default: "#e34a33",
+      },
       xAxisName: {
         label: "Axis Name",
         section: "X",
@@ -133,8 +145,8 @@
         colorAxis: {
           min: minz,
           max: maxz,
-          minColor: "#fee8c8",
-          maxColor: "#e34a33",
+          minColor: config.minColor,
+          maxColor: config.maxColor,
         },
         series: [{
           data: series,

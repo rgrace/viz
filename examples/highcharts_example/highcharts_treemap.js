@@ -7,6 +7,12 @@
         label: "Chart Name",
         type: "string",
       },
+      color_range: {
+        type: "array",
+        label: "Color Range",
+        display: "colors",
+        default: ["#dd3333", "#80ce5d", "#f78131", "#369dc1", "#c572d3", "#36c1b3", "#b57052", "#ed69af"],
+      },
     },
     // Set up the initial state of the visualization
     create: function(element, config) {
@@ -35,7 +41,7 @@
         }
         if (parent == null) {
           datum["id"] = "id_" + idx
-          datum["color"] = Highcharts.getOptions().colors[idx]
+          datum["color"] = config.color_range[idx]
         } else {
           datum["id"] = [parent.id, idx].join("_")
           datum["parent"] = parent.id
@@ -71,6 +77,7 @@
       })
 
       let options = {
+        colors: config.color_range,
         credits: {
           enabled: false
         },
