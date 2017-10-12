@@ -11,10 +11,7 @@ looker.plugins.visualizations.add({
   },
   // Set up the initial state of the visualization
   create: function(element, config) {
-    var d3 = d3v4;
-
-    this._svg = d3.select(element).append("svg");
-
+    this._svg = d3v4.select(element).append("svg");
   },
   // Render in response to the data or settings changing
   update: function(data, element, config, queryResponse) {
@@ -23,24 +20,24 @@ looker.plugins.visualizations.add({
       min_dimensions: 1, max_dimensions: undefined,
       min_measures: 1, max_measures: 1,
     })) return;
-    var d3 = d3v4;
+    let d3 = d3v4;
 
-    var width = element.clientWidth;
-    var height = element.clientHeight;
+    let width = element.clientWidth;
+    let height = element.clientHeight;
 
-    var dimensions = queryResponse.fields.dimension_like;
-    var measure = queryResponse.fields.measure_like[0];
+    let dimensions = queryResponse.fields.dimension_like;
+    let measure = queryResponse.fields.measure_like[0];
 
-    var format = formatType(measure.value_format);
+    let format = formatType(measure.value_format);
 
-    var color = d3.scaleOrdinal()
+    let color = d3.scaleOrdinal()
       .range(config.color_range)
 
     data.forEach(function(row) {
       row.taxonomy = dimensions.map(function(dim) {return row[dim.name].value})
     });
 
-    var treemap = d3.treemap()
+    let treemap = d3.treemap()
         .size([width, height-16])
         .tile(d3.treemapSquarify.ratio(1))
         .paddingOuter(1)
@@ -50,22 +47,22 @@ looker.plugins.visualizations.add({
         .paddingInner(1)
         .round(true);
 
-    var svg = this._svg
+    let svg = this._svg
       .html("")
       .attr("width", "100%")
       .attr("height", "100%")
       .append("g")
       .attr("transform", "translate(0,16)");
 
-    var breadcrumb = svg.append("text")
+    let breadcrumb = svg.append("text")
       .attr("y", -5)
       .attr("x", 4);
 
-    var root = d3.hierarchy(burrow(data))
+    let root = d3.hierarchy(burrow(data))
       .sum(function(d) { return ("data" in d) ? d.data[measure.name].value : 0; });
     treemap(root);
 
-    var cell = svg.selectAll(".node")
+    let cell = svg.selectAll(".node")
         .data(root.descendants())
       .enter().append("g")
         .attr("transform", function(d) { return "translate(" + d.x0 + "," + d.y0 + ")"; })
@@ -74,7 +71,7 @@ looker.plugins.visualizations.add({
         .style("cursor", "pointer")
         .on("click", function(d) { console.log(d);})
         .on("mouseenter", function(d) {
-          var ancestors = d.ancestors();
+          let ancestors = d.ancestors();
           breadcrumb.text(ancestors.map(function(p) { return p.data.name }).slice(0,-1).reverse().join("-") + ": " + format(d.value));
           svg.selectAll("g.node rect")
             .style("stroke", null)
@@ -82,7 +79,7 @@ looker.plugins.visualizations.add({
               return ancestors.indexOf(p) > -1;
             })
             .style("stroke", function(p) {
-              var scale = d3.scaleLinear()
+              let scale = d3.scaleLinear()
                 .domain([1,12])
                 .range([color(d.ancestors().map(function(p) { return p.data.name }).slice(-2,-1)),"#ddd"])
               return "#fff";
@@ -102,7 +99,7 @@ looker.plugins.visualizations.add({
       .attr("height", function(d) { return d.y1 - d.y0; })
       .style("fill", function(d) {
         if (d.depth == 0) return "none";
-        var scale = d3.scaleLinear()
+        let scale = d3.scaleLinear()
           .domain([1,6.5])
           .range([color(d.ancestors().map(function(p) { return p.data.name }).slice(-2,-1)),"#ddd"])
         return scale(d.depth);
@@ -113,7 +110,7 @@ looker.plugins.visualizations.add({
 			.append("use")
 				.attr("xlink:href", function(d,i) { return "#rect-" + i; });
 
-		var label = cell
+		let label = cell
         .append("text")
         .style("opacity", function(d) {
           if (d.depth == 1) return 1;
@@ -133,10 +130,10 @@ looker.plugins.visualizations.add({
 
     function burrow(table) {
       // create nested object
-      var obj = {};
+      let obj = {};
       table.forEach(function(row) {
         // start at root
-        var layer = obj;
+        let layer = obj;
 
         // create children as nested objects
         row.taxonomy.forEach(function(key) {
@@ -147,12 +144,12 @@ looker.plugins.visualizations.add({
       });
 
       // recursively create children array
-      var descend = function(obj, depth) {
-        var arr = [];
-        var depth = depth || 0;
-        for (var k in obj) {
+      let descend = function(obj, depth) {
+        let arr = [];
+        depth = depth || 0;
+        for (let k in obj) {
           if (k == "__data") { continue; }
-          var child = {
+          let child = {
             name: k,
             depth: depth,
             children: descend(obj[k], depth+1)

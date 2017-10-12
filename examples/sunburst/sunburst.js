@@ -11,10 +11,7 @@ looker.plugins.visualizations.add({
   },
   // Set up the initial state of the visualization
   create: function(element, config) {
-    var d3 = d3v4;
-
-    this._svg = d3.select(element).append("svg");
-
+    this._svg = d3v4.select(element).append("svg");
   },
   // Render in response to the data or settings changing
   update: function(data, element, config, queryResponse) {
@@ -23,51 +20,51 @@ looker.plugins.visualizations.add({
       min_dimensions: 1, max_dimensions: undefined,
       min_measures: 1, max_measures: 1,
     })) return;
-    var d3 = d3v4;
+    let d3 = d3v4;
 
-    var width = element.clientWidth;
-    var height = element.clientHeight;
-    var radius = (Math.min(width, height) / 2) - 8;
+    let width = element.clientWidth;
+    let height = element.clientHeight;
+    let radius = (Math.min(width, height) / 2) - 8;
 
-    var dimensions = queryResponse.fields.dimension_like;
-    var measure = queryResponse.fields.measure_like[0];
+    let dimensions = queryResponse.fields.dimension_like;
+    let measure = queryResponse.fields.measure_like[0];
 
-    var format = formatType(measure.value_format);
+    let format = formatType(measure.value_format);
 
-    var x = d3.scaleLinear()
+    let x = d3.scaleLinear()
           .range([0, 2 * Math.PI]);
 
-    var y = d3.scaleSqrt()
+    let y = d3.scaleSqrt()
           .range([0, radius]);
 
-    var color = d3.scaleOrdinal()
+    let color = d3.scaleOrdinal()
       .range(config.color_range);
 
     data.forEach(function(row) {
       row.taxonomy = dimensions.map(function(dimension) {return row[dimension.name].value}) // row[dimension].value.split("-");
     });
 
-    var partition = d3.partition()
+    let partition = d3.partition()
       .size([2 * Math.PI, radius * radius]);
 
-    var arc = d3.arc()
+    let arc = d3.arc()
       .startAngle(function(d) { return d.x0; })
       .endAngle(function(d) { return d.x1; })
       .innerRadius(function(d) { return Math.sqrt(d.y0); })
       .outerRadius(function(d) { return Math.sqrt(d.y1); });
 
-    var svg = this._svg
+    let svg = this._svg
       .html("")
       .attr("width", "100%")
       .attr("height", "100%")
       .append("g")
       .attr("transform", "translate(" + width / 2 + "," + (height / 2) + ")");
 
-    var label = svg.append("text")
+    let label = svg.append("text")
       .attr("y", -height/2 + 20)
       .attr("x", -width/2 + 20);
 
-    var root = d3.hierarchy(burrow(data))
+    let root = d3.hierarchy(burrow(data))
           .sum(function(d) { return ("data" in d) ? d.data[measure.name].value : 0; });
     partition(root);
 
@@ -91,7 +88,7 @@ looker.plugins.visualizations.add({
         .on("mouseenter", function(d) {
           label.text(d.ancestors().map(function(p) { return p.data.name }).slice(0,-1).reverse().join("-") + ": " + format(d.value));
 
-          var ancestors = d.ancestors();
+          let ancestors = d.ancestors();
           svg.selectAll("path")
             .style("fill-opacity", function(p) {
               return ancestors.indexOf(p) > -1 ? 1 : 0.15;
@@ -107,10 +104,10 @@ looker.plugins.visualizations.add({
 
     function burrow(table) {
       // create nested object
-      var obj = {};
+      let obj = {};
       table.forEach(function(row) {
         // start at root
-        var layer = obj;
+        let layer = obj;
 
         // create children as nested objects
         row.taxonomy.forEach(function(key) {
@@ -121,12 +118,12 @@ looker.plugins.visualizations.add({
       });
 
       // recursively create children array
-      var descend = function(obj, depth) {
-        var arr = [];
-        var depth = depth || 0;
-        for (var k in obj) {
+      let descend = function(obj, depth) {
+        let arr = [];
+        depth = depth || 0;
+        for (let k in obj) {
           if (k == "__data") { continue; }
-          var child = {
+          let child = {
             name: k,
             depth: depth,
             children: descend(obj[k], depth+1)

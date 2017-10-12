@@ -1,10 +1,10 @@
 function calendarView(element, formattedData, color_range) {
-  var d3 = d3v4;
+  let d3 = d3v4;
 
-  var data = formattedData.data;
+  let data = formattedData.data;
 
   function monthPath(t0) {
-    var t1 = new Date(t0.getFullYear(), t0.getMonth() + 1, 0),
+    let t1 = new Date(t0.getFullYear(), t0.getMonth() + 1, 0),
         d0 = t0.getDay(), w0 = d3.timeWeek.count(d3.timeYear(t0), t0)
         d1 = t1.getDay(), w1 = d3.timeWeek.count(d3.timeYear(t1), t1);
     return "M" + (w0 + 1) * cellSize + "," + d0 * cellSize
@@ -14,8 +14,8 @@ function calendarView(element, formattedData, color_range) {
         + "H" + (w0 + 1) * cellSize + "Z";
   }
 
-  var format = d3.timeFormat("%Y-%m-%d");
-  var parseDate = d3.timeParse("%Y-%m-%d");
+  let format = d3.timeFormat("%Y-%m-%d");
+  let parseDate = d3.timeParse("%Y-%m-%d");
 
   let minYear = d3.min(data.keys(), function(d) { return parseDate(d).getFullYear(); })
   let maxYear = d3.max(data.keys(), function(d) { return parseDate(d).getFullYear(); })
@@ -25,19 +25,19 @@ function calendarView(element, formattedData, color_range) {
   let minY = d3.min(data.values(), function(d) { return d; })
   let maxY = d3.max(data.values(), function(d) { return d; })
 
-  var heightCellRatio = 9
+  let heightCellRatio = 9
       widthCellRatio = 55;
 
-  var cellSize = d3.max([d3.min([(element.offsetWidth - 20) / widthCellRatio, element.offsetHeight / yearLength / heightCellRatio]), 1])
+  let cellSize = d3.max([d3.min([(element.offsetWidth - 20) / widthCellRatio, element.offsetHeight / yearLength / heightCellRatio]), 1])
       width = cellSize * widthCellRatio
       yearHeight = cellSize * heightCellRatio
       height = yearHeight * yearLength;
 
-  var color = d3.scaleQuantize()
+  let color = d3.scaleQuantize()
       .domain([minY, maxY])
       .range(color_range);
 
-  var svg = d3.select(element)
+  let svg = d3.select(element)
     .selectAll("svg")
       .data(d3.range(minYear, maxYear + 1))
     .enter().append("svg")
@@ -56,7 +56,7 @@ function calendarView(element, formattedData, color_range) {
       .style("text-anchor", "middle")
       .text(function(d) { return d; });
 
-  var rect = svg.append("g")
+  let rect = svg.append("g")
       .attr("fill", "none")
       .attr("stroke", "#ccc")
     .selectAll("rect")
@@ -76,7 +76,7 @@ function calendarView(element, formattedData, color_range) {
     .enter().append("path")
       .attr("d", monthPath);
 
-  var tooltip = d3.select(element)
+  let tooltip = d3.select(element)
     .append("div").attr("id", "tooltip")
     .style("position", "absolute")
     .style("z-index", "10")

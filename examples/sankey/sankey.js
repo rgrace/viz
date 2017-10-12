@@ -11,9 +11,7 @@ looker.plugins.visualizations.add({
   },
   // Set up the initial state of the visualization
   create: function(element, config) {
-    var d3 = d3v4;
-
-    var css = element.innerHTML = `
+    let css = element.innerHTML = `
       <style>
       .node,
       .link {
@@ -21,9 +19,7 @@ looker.plugins.visualizations.add({
       }
       </style>
     `;
-
-    this._svg = d3.select(element).append("svg");
-
+    this._svg = d3v4.select(element).append("svg");
   },
   // Render in response to the data or settings changing
   update: function(data, element, config, queryResponse) {
@@ -32,58 +28,58 @@ looker.plugins.visualizations.add({
       min_dimensions: 2, max_dimensions: undefined,
       min_measures: 1, max_measures: 1,
     })) return;
-    var d3 = d3v4;
+    let d3 = d3v4;
 
-    var width = element.clientWidth;
-    var height = element.clientHeight;
+    let width = element.clientWidth;
+    let height = element.clientHeight;
 
-    var svg = this._svg
+    let svg = this._svg
       .html("")
       .attr("width", "100%")
       .attr("height", "100%")
       .append("g");
 
-    var dimensions = queryResponse.fields.dimension_like;
-    var measure = queryResponse.fields.measure_like[0];
+    let dimensions = queryResponse.fields.dimension_like;
+    let measure = queryResponse.fields.measure_like[0];
 
-    var format = formatType(measure.value_format);
+    let format = formatType(measure.value_format);
 
-    var color = d3.scaleOrdinal()
+    let color = d3.scaleOrdinal()
       .range(config.color_range);
 
-		var defs = svg.append('defs');
+		let defs = svg.append('defs');
 
-		var sankey = d3.sankey()
+		let sankey = d3.sankey()
 				.nodeWidth(10)
 				.nodePadding(12)
 				.extent([[1, 1], [width - 1, height - 6]]);
 
-		var link = svg.append("g")
+		let link = svg.append("g")
 				.attr("class", "links")
 				.attr("fill", "none")
 				.attr("stroke", "#fff")
 			.selectAll("path");
 
-		var node = svg.append("g")
+		let node = svg.append("g")
 				.attr("class", "nodes")
 				.attr("font-family", "sans-serif")
 				.attr("font-size", 10)
 			.selectAll("g");
 
-		var graph = {
+		let graph = {
 			nodes: [],
 			links: []
 		};
 
-		var nodes = d3.set();
+		let nodes = d3.set();
 
 		data.forEach(function(d) {
       // variable number of dimensions
-      var path = dimensions.map(function(dim) {return d[dim.name].value});
+      let path = dimensions.map(function(dim) {return d[dim.name].value});
       path.forEach(function(p,i) {
         if (i == path.length-1) return;
-        var source = path.slice(i,i+1)[0] + i;
-        var target = path.slice(i+1,i+2)[0] + (i+1);
+        let source = path.slice(i,i+1)[0] + i;
+        let target = path.slice(i+1,i+2)[0] + (i+1);
         nodes.add(source);
         nodes.add(target);
         graph.links.push({ "source": source,
@@ -92,7 +88,7 @@ looker.plugins.visualizations.add({
       });
 		});
 
-		var nodesArray = nodes.values();
+		let nodesArray = nodes.values();
 
 		graph.links.forEach(function (d, i) {
 			d.source = nodesArray.indexOf(d.source);
@@ -135,12 +131,12 @@ looker.plugins.visualizations.add({
 		link.style('stroke', function(d,i) {
 
 			// make unique gradient ids
-			var gradientID = "gradient" + i;
+			let gradientID = "gradient" + i;
 
-			var startColor = color(d.source.name.replace(/ .*/, ""));
-			var stopColor = color(d.target.name.replace(/ .*/, ""));
+			let startColor = color(d.source.name.replace(/ .*/, ""));
+			let stopColor = color(d.target.name.replace(/ .*/, ""));
 
-			var linearGradient = defs.append('linearGradient')
+			let linearGradient = defs.append('linearGradient')
 					.attr('id', gradientID);
 
 			linearGradient.selectAll('stop')
