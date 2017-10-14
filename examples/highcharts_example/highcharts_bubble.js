@@ -49,7 +49,7 @@
     },
     // Render in response to the data or settings changing
     update: function(data, element, config, queryResponse) {
-      if (!handleErrors(this, data, queryResponse, {
+      if (!handleErrors(this, queryResponse, {
         min_pivots: 0, max_pivots: 1,
         min_dimensions: 1, max_dimensions: 2,
         min_measures: 1, max_measures: 2,

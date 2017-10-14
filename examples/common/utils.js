@@ -27,14 +27,23 @@ function formatType(valueFormat) {
   return d3.format(format)
 }
 
-function handleErrors(vis, data, resp, options) {
+function handleErrors(vis, resp, options) {
+  function messageFromLimits(min, max, field) {
+    let message = "You need " + min
+    if (max) {
+      message += " to " + max
+    }
+    message += " " + field
+    return message
+  }
 
   if ((resp.fields.pivots.length < options.min_pivots) ||
-      (options.max_pivots && resp.fields.pivots.length > options.max_pivots)) {
+      (resp.fields.pivots.length > options.max_pivots)) {
+    let message
     vis.addError({
       group: "pivot-req",
-      title: "Incompatible Data",
-      message: "You need " + options.min_pivots + options.max_pivots ? " to "+ options.max_pivots : "" +" dimensions"
+      title: "Incompatible Pivot Data",
+      message: messageFromLimits(options.min_pivots, options.max_pivots, "pivots"),
     });
     return false;
   } else {
@@ -42,11 +51,11 @@ function handleErrors(vis, data, resp, options) {
   }
 
   if ((resp.fields.dimensions.length < options.min_dimensions) ||
-      (options.max_dimensions && resp.fields.dimensions.length > options.max_dimensions)) {
+      (resp.fields.dimensions.length > options.max_dimensions)) {
     vis.addError({
       group: "dim-req",
-      title: "Incompatible Data",
-      message: "You need " + options.min_dimensions + options.max_dimensions ? " to "+ options.max_dimensions : "" +" dimensions"
+      title: "Incompatible Dimension Data",
+      message: messageFromLimits(options.min_dimensions, options.max_dimensions, "dimensions"),
     });
     return false;
   } else {
@@ -54,11 +63,11 @@ function handleErrors(vis, data, resp, options) {
   }
 
   if ((resp.fields.measure_like.length < options.min_measures) ||
-      (options.max_measures && resp.fields.measure_like.length > options.max_measures)) {
+      (resp.fields.measure_like.length > options.max_measures)) {
     vis.addError({
       group: "mes-req",
-      title: "Incompatible Data",
-      message: "You need " + options.min_measures + options.max_measures ?" to "+ options.max_measures : "" +" measures"
+      title: "Incompatible Measure Data",
+      message: messageFromLimits(options.min_measures, options.max_measures, "measures"),
     });
     return false;
   } else {
