@@ -13,8 +13,8 @@ looker.plugins.visualizations.add({
 	},
 	update: function(data, element, config, queryResponse, details){
 		var html = "";
-		for(var row in data) {
-			var cell = data[queryResponse.fields.dimensions[0].name];
+		for(var row of data) {
+			var cell = row[queryResponse.fields.dimensions[0].name];
 			html += LookerCharts.Utils.htmlForCell(cell);
 		}
 		element.innerHTML = html;
