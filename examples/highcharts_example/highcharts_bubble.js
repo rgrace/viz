@@ -64,22 +64,24 @@
           rawDatum = p[field.name][pivot]
         }
         let datum = {}
-        datum[key] = rawDatum["value"]
-        datum[key + "_rendered"] = rawDatum["rendered"] ? rawDatum["rendered"]: rawDatum["value"]
+        if (field.is_timeframe || field.is_numeric) {
+          datum[key] = rawDatum["value"]
+          datum[key + "_rendered"] = rawDatum["rendered"] ? rawDatum["rendered"]: rawDatum["value"]
 
-        if (field.is_timeframe) {
-          datum["date"] = rawDatum["value"]
-          switch(field.field_group_variant) {
-            case "Month":
-            case "Quarter":
-              datum["date"] = datum["date"] + "-01"
-              break;
-            case "Year":
-              datum["date"] = datum["date"] + "-01-01"
-              break;
+          if (field.is_timeframe) {
+            datum["date"] = rawDatum["value"]
+            switch(field.field_group_variant) {
+              case "Month":
+              case "Quarter":
+                datum["date"] = datum["date"] + "-01"
+                break;
+              case "Year":
+                datum["date"] = datum["date"] + "-01-01"
+                break;
+            }
+            dateVal = Date.UTC.apply(Date, datum["date"].split(/\D/))
+            datum[key] = dateVal
           }
-          dateVal = Date.UTC.apply(Date, datum["date"].split(/\D/))
-          datum[key] = dateVal
         }
         return datum
       }
@@ -162,6 +164,9 @@
           }
         },
         series: series
+      }
+      if (!(x.is_timeframe || x.is_numeric)) {
+        options["xAxis"]["categories"] = data.map(function(d) { return d[x.name].value })
       }
       let myChart = Highcharts.chart(element, options);
     }
