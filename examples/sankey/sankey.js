@@ -75,7 +75,7 @@ looker.plugins.visualizations.add({
 
 		data.forEach(function(d) {
       // variable number of dimensions
-      let path = dimensions.map(function(dim) {return d[dim.name].value});
+      let path = dimensions.map(function(dim) {return d[dim.name].value + ""});
       path.forEach(function(p,i) {
         if (i == path.length-1) return;
         let source = path.slice(i,i+1)[0] + i;
