@@ -100,14 +100,19 @@
           traits = queryResponse.fields.dimension_like.filter(function(dim) {
             return (dim.is_numeric || dim.is_timeframe)
           }).map(function(d) { return d.name; }),
-          non_numeric_dimension = queryResponse.fields.dimension_like.filter(function(dim) {
-            return !(dim.is_numeric || dim.is_timeframe)
-          })[0],
+          non_numeric_dimension,
           n = traits.length,
           padding = 20,
-          size = d3.min([element.offsetWidth / n - padding, element.offsetHeight / n - padding]);
+          size = d3.min([element.offsetWidth / n - padding, element.offsetHeight / n - padding ]);
 
-      console.log(element, size)
+      if (queryResponse.fields.dimension_like.filter(function(dim) {
+        return !(dim.is_numeric || dim.is_timeframe)
+      })) {
+        non_numeric_dimension = queryResponse.fields.dimension_like.filter(function(dim) {
+          return !(dim.is_numeric || dim.is_timeframe)
+        })[0]
+      }
+
       var x = d3.scale.linear()
           .range([padding / 2, size - padding / 2]);
 
@@ -124,9 +129,15 @@
           .orient("left")
           .ticks(6);
 
-      var color = d3.scale.ordinal()
-          .domain(d3.map(data, function(d){return accessor(d, non_numeric_dimension.name);}).keys())
-          .range(config.color_range);
+      var fill;
+      if (non_numeric_dimension) {
+        var color = d3.scale.ordinal()
+            .domain(d3.map(data, function(d){return accessor(d, non_numeric_dimension.name);}).keys())
+            .range(config.color_range);
+        fill = function(d) { return color(accessor(d, non_numeric_dimension.name)); };
+      } else {
+        fill = function(d) { return "black"; };
+      }
 
       traits.forEach(function(trait) {
         domainByTrait[trait] = d3.extent(data, function(d) { return accessor(d, trait); });
@@ -197,7 +208,7 @@
             .attr("cx", function(d) { return x(accessor(d, p.x)); })
             .attr("cy", function(d) { return y(accessor(d, p.y)); })
             .attr("r", 4)
-            .style("fill", function(d) { return color(accessor(d, non_numeric_dimension.name)); });
+            .style("fill", fill);
       }
 
       var brushCell;
