@@ -1,4 +1,4 @@
-function calendarView(element, formattedData, color_range) {
+function calendarView(element, formattedData, colorRange) {
   let d3 = d3v4;
 
   let data = formattedData.data;
@@ -35,7 +35,7 @@ function calendarView(element, formattedData, color_range) {
 
   let color = d3.scaleQuantize()
       .domain([minY, maxY])
-      .range(color_range);
+      .range(colorRange);
 
   let svg = d3.select(element)
     .selectAll("svg")
