@@ -14,10 +14,15 @@
     },
     // Transform data
     prepare: function(data, queryResponse) {
+      // vega doesn't like periods in their field names...
+      function fieldName(name) {
+        return name.split(".")[1]
+      }
       let fields = queryResponse.fields.dimension_like.concat(queryResponse.fields.measure_like);
       return data.map(function(d) {
-        let row = fields.reduce(function(acc,  cur) {
-          acc[cur.name] = d[cur.name].value;
+        return fields.reduce(function(acc, cur) {
+          acc[fieldName(cur.name)] = d[cur.name].value;
+          return acc
         }, {});
       })
     },
@@ -29,29 +34,14 @@
         min_measures: 0, max_measures: undefined,
       })) return;
       this.create(element, config);
-      console.log(data, queryResponse);
       let jsonData = this.prepare(data, queryResponse);
-      config.spec = {
-        "$schema": "https://vega.github.io/schema/vega-lite/v2.0.json",
-        "description": "A simple bar chart with embedded data.",
-        "data": {
-          "values": [
-            {"a": "A","b": 28}, {"a": "B","b": 55}, {"a": "C","b": 43},
-            {"a": "D","b": 91}, {"a": "E","b": 81}, {"a": "F","b": 53},
-            {"a": "G","b": 19}, {"a": "H","b": 87}, {"a": "I","b": 52}
-          ]
-        },
-        "mark": "bar",
-        "encoding": {
-          "x": {"field": "a", "type": "ordinal"},
-          "y": {"field": "b", "type": "quantitative"}
-        }
-      }
       let spec = JSON.parse(config.spec);
       spec.data = {
         values: jsonData,
       };
-      return vegaEmbed("#vis", spec);
+      return vegaEmbed(element, spec, {
+        actions: false
+      });
     }
   }
   looker.plugins.visualizations.add(viz);
