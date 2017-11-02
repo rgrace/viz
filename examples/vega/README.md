@@ -30,8 +30,8 @@ The data parameter is handled by the custom visualization to pass data of the fo
 
 ```json
 [
-  {category: "Jeans", total_sale_price: 2210481},
-  {category: "Accessories", total_sale_price: 1355342},
+  {"category": "Jeans", "total_sale_price": 2210481},
+  {"category": "Accessories", "total_sale_price": 1355342},
   ...
 ]
 ```
