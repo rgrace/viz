@@ -10,24 +10,25 @@
     },
     // Set up the initial state of the visualization
     create: function(element, config) {
-      element.innerHTML = ""
+      element.innerHTML = "";
+      this.clearErrors("vega");
     },
     // Transform data
     prepare: function(data, queryResponse) {
-      // vega doesn't like periods in their field names...
-      function fieldName(name) {
+      // ag-grid doesn't like periods in their field names...
+      function cleanFieldName(name) {
         return name.split(".")[1]
       }
       let fields = queryResponse.fields.dimension_like.concat(queryResponse.fields.measure_like);
       return data.map(function(d) {
         return fields.reduce(function(acc, cur) {
-          acc[fieldName(cur.name)] = d[cur.name].value;
+          acc[cleanFieldName(cur.name)] = d[cur.name].value;
           return acc
         }, {});
       })
     },
     // Render in response to the data or settings changing
-    update: function(data, element, config, queryResponse) {
+    update: async function(data, element, config, queryResponse) {
       if (!handleErrors(this, queryResponse, {
         min_pivots: 0, max_pivots: 0,
         min_dimensions: 0, max_dimensions: undefined,
@@ -39,9 +40,16 @@
       spec.data = {
         values: jsonData,
       };
-      return vegaEmbed(element, spec, {
-        actions: false
-      });
+      try {
+        const {vis, s} = await vegaEmbed(element, spec, {actions: false});
+        return vis
+      } catch (e) {
+        this.addError({
+          group: "vega",
+          title: "Vega Error",
+          message: e.message,
+        });
+      }
     }
   }
   looker.plugins.visualizations.add(viz);
