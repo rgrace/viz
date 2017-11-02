@@ -54,8 +54,8 @@ looker.plugins.visualizations.add({
       min_dimensions: 1, max_dimensions: 1,
       min_measures: 1, max_measures: 1,
     })) return;
-    element.innerHTML = ""
-    let formattedData = this.prepare(data, queryResponse)
-    return calendarView(element, formattedData, config.color_range)
+    this.create(element, config);
+    let formattedData = this.prepare(data, queryResponse);
+    return calendarView(element, formattedData, config.color_range);
   }
 });
