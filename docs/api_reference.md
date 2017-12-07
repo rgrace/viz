@@ -39,6 +39,22 @@ Just like all web development, supporting different web browsers (Chrome, Edge, 
 
 Any files placed in the `looker/plugins/visualizations` directory on your Looker server will be picked up.
 
+You can clone this repo into the visualization directory. Looker will recursive find and serve all .js files. To include only one visualization, you can use a sparse checkout from git. For example, to include the Sankey visualization:
+
+```sh
+cd looker/plugins
+mkdir visualizations
+cd visualizations
+git init
+git remote add -f origin https://github.com/looker/visualization-api-examples.git
+git config core.sparseCheckout true
+echo "examples/common/d3.v4.js" >> .git/info/sparse-checkout
+echo "examples/common/utils.js" >> .git/info/sparse-checkout
+echo "examples/sankey/d3.sankey.js" >> .git/info/sparse-checkout
+echo "examples/sankey/sankey.js" >> .git/info/sparse-checkout
+git pull origin master
+```
+
 ## The Visualization Object
 
 ##### Required Properties
