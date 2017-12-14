@@ -26,7 +26,9 @@ looker.plugins.visualizations.add({
 
     // [{x.name: value, y.name: value}, ]
     let series = []
-    data.forEach(function(datum) {
+    data.filter(function(d) {
+      return d3v4.timeParse("%Y-%m-%d")(d)
+    }).forEach(function(datum) {
       let point = {}
       point[x.name] = datum[x.name]["value"]
       point[y.name] = datum[y.name]["value"]
@@ -35,27 +37,37 @@ looker.plugins.visualizations.add({
 
     // {date: value, }
     let formattedData = d3v4.nest()
-      .key(function(d) { return d[x.name]; })
-      .rollup(function(d) { return d[0][y.name]; })
-      .map(series);
+      .key(function(d) { return d[x.name] })
+      .rollup(function(d) { return d[0][y.name] })
+      .map(series)
 
-    let formatter = formatType(y.value_format);
+    let formatter = formatType(y.value_format)
 
     return {
       data: formattedData,
       formatter: formatter,
     }
   },
-
+  handleErrors(queryResponse) {
+    console.log("queryResponse", queryResponse)
+    if (!queryResponse.fields.dimensions[0]) {
+      this.addError({
+        group: "date-req",
+        title: "Incompatible Data",
+        message: "Calendar Visualization Requires a Date Dimension",
+      })
+    }
+  },
   // Render in response to the data or settings changing
   update: function(data, element, config, queryResponse) {
     if (!handleErrors(this, queryResponse, {
       min_pivots: 0, max_pivots: 0,
       min_dimensions: 1, max_dimensions: 1,
       min_measures: 1, max_measures: 1,
-    })) return;
-    this.create(element, config);
-    let formattedData = this.prepare(data, queryResponse);
-    return calendarView(element, formattedData, config.color_range);
+    })) return
+    if (!this.handleErrors(queryResponse)) return
+    this.create(element, config)
+    let formattedData = this.prepare(data, queryResponse)
+    return calendarView(element, formattedData, config.color_range)
   }
-});
+})
