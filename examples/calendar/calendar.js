@@ -49,14 +49,17 @@ looker.plugins.visualizations.add({
     }
   },
   handleErrors(queryResponse) {
-    console.log("queryResponse", queryResponse)
-    if (!queryResponse.fields.dimensions[0]) {
+    if (!queryResponse.fields.dimensions[0].is_timeframe) {
       this.addError({
         group: "date-req",
         title: "Incompatible Data",
         message: "Calendar Visualization Requires a Date Dimension",
       })
+      return false
+    } else {
+      this.clearErrors("date-req")
     }
+    return true
   },
   // Render in response to the data or settings changing
   update: function(data, element, config, queryResponse) {
