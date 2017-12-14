@@ -27,11 +27,11 @@ looker.plugins.visualizations.add({
     // [{x.name: value, y.name: value}, ]
     let series = []
     data.filter(function(d) {
-      return d3v4.timeParse("%Y-%m-%d")(d)
-    }).forEach(function(datum) {
+      return d3v4.timeParse("%Y-%m-%d")(d[x.name]["value"])
+    }).forEach(function(d) {
       let point = {}
-      point[x.name] = datum[x.name]["value"]
-      point[y.name] = datum[y.name]["value"]
+      point[x.name] = d[x.name]["value"]
+      point[y.name] = d[y.name]["value"]
       series.push(point)
     })
 
@@ -49,7 +49,8 @@ looker.plugins.visualizations.add({
     }
   },
   handleErrors(queryResponse) {
-    if (!queryResponse.fields.dimensions[0].is_timeframe) {
+    if (!(queryResponse.fields.dimensions[0].is_timeframe &&
+          queryResponse.fields.dimensions[0].time_interval.name === "day")) {
       this.addError({
         group: "date-req",
         title: "Incompatible Data",
