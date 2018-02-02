@@ -6,19 +6,27 @@
       chartName: {
         section: "Chart",
         label: "Chart Name",
-        type: "string",
+        type: "string"
       },
       minColor: {
+        section: "Chart",
         type: "string",
         label: "Minimum Color",
         display: "color",
-        default: "#fee8c8",
+        default: "#fee8c8"
       },
       maxColor: {
+        section: "Chart",
         type: "string",
         label: "Maximum Color",
         display: "color",
-        default: "#e34a33",
+        default: "#e34a33"
+      },
+      dataLabels: {
+        section: "Chart",
+        type: "boolean",
+        label: "Data Labels",
+        default: true
       },
       xAxisName: {
         label: "Axis Name",
@@ -152,7 +160,7 @@
           data: series,
           borderWidth: 1,
           dataLabels: {
-            enabled: true,
+            enabled: config.dataLabels,
             color: '#000000',
             formatter: function() {
               return zFormat(this.point.value)
