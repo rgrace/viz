@@ -1,19 +1,14 @@
 
-The Looker Visualization API is a pure-JavaScript API that runs in the browser and will be hosted within the Looker application.
+The Looker Visualization API is a pure-JavaScript API that runs in a sandboxed iframe and will be hosted within the Looker application.
 
 The same visualization code can provide a visualization anywhere in Looker: explore, Looks, Dashboards, embed or in PDF or rendered images.
 
-Each visualization represents a view of a single Looker query. Looker will handle running the query, and will pass it to your visualiation code. You'll also get passed a DOM element that your visualization code can draw into.
+Each visualization represents a view of a single Looker query. Looker will handle running the query, and will pass it to your visualization code. You'll also get passed a DOM element that your visualization code can draw into.
 
 ### Requirements
 
 - Some knowledge of JavaScript and web development
-- Looker
-  - Currently, Looker must be hosted on-premise to use custom visualiations.
-
-  	 Depending on your license, our support team may need to enable the custom visualizations feature.
-
-  	 Use in-app chat or email support@looker.com if you need help with this.
+- Looker Admin access is required to create and update manfiests, but otherwise is not required.
 
 ## Hello World
 
@@ -25,24 +20,35 @@ We'll be creating a simple "Hello World" visualization that displays the first d
 
 ![](../examples/hello_world/hello_world.png)
 
+### Setup
+
+To develop and test a visualization in Looker, you will need to host your visualization over https and create a manifest with a "Main" file pointing at your IP address and hosting port.
+
+1. `pip install pyhttps` to install a simple https server.
+2. `pyhttps` in whichever folder you wish to develop.
+3. In Looker, navigate to the Admin page. In the left hand navigation pane, find the "Platform" section and select "Visualizations".
+4. Click "Add Visualization" to create a new manifest.
+5. Add a unique id, a label for your visualization (we suggest prefixing it with DEV ONLY so no one creates and saves content with it.
+6. Finally your "Main" file should point at `https://localhost:4443/hello_world.js`
+
+Now let's actually create `hello_world.js`
+
 ### Just The Bones
 
 If you want to just jump to the final source code for this example, [that's available here](../examples/hello_world/hello_world.js).
 
-We'll open a new blank JavaScript file on our computer and call it `hello_world.js`.
+In the folder you are hosting via `pyhttps` open a new blank JavaScript file on our computer and call it `hello_world.js`.
 
 You register a new custom visualization with Looker by calling the `looker.plugins.visualizations.add` function and passing it a visualization object. This object contains the entire definition of your visualization and it's configuration UI.
 
-Here's the skeleton of our visualization with all the required properties filled out: an `id` and a `label` for our visualization, and a `create` and `update` function where we'll write our visualization code:
+Here's the skeleton of our visualization with all the required properties filled out: just a `create` and `updateAsync` function where we'll write our visualization code:
 
 ```js
 looker.plugins.visualizations.add({
-  id: "hello_world",
-  label: "Hello World"
   create: function(element, config) {
 
-  }
-  update: function(data, element, config, queryResponse) {
+  },
+  updateAsync: function(data, element, config, queryResponse, done) {
 
   }
 })
@@ -54,7 +60,7 @@ This is a perfectly valid Looker visualization, but it's not very visual yet. It
 
 Let's look at the `create` function now. Note it has two arguments: `element` and `config`. We'll just worry about the first one for now.
 
-Looker gives us an `element`, which is the [DOM Element](https://www.w3schools.com/js/js_htmldom_elements.asp) that Looker would like us to put our visualization into. Looker will build this element for you and make it the proper size, you just need to put stuff in there.
+Looker gives us an `element`, which is the [DOM Element](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement) that Looker would like us to put our visualization into. Looker will build this element for you and make it the proper size, you just need to put stuff in there.
 
 The `create` function gives us the opportunity to do the initial setup of our element. For our example, we want to create a chart that will look kind of like this HTML:
 
@@ -106,14 +112,14 @@ That's all we need to do in our `create` function – it's just a convenient pla
 
 ### Rendering
 
-It's time to visualize! We'll flesh out our `update` method now. This method gets called any time the data the chart is supposed to visualize changes, or when any other event happens that might affect how your chart is rendered. (For example, the chart may have been resized or a configuration option changed.)
+It's time to visualize! We'll flesh out our `updateAsync` method now. This method gets called any time the data the chart is supposed to visualize changes, or when any other event happens that might affect how your chart is rendered. (For example, the chart may have been resized or a configuration option changed.)
 
 In our case, we just need to find the first dimension in the first cell. We can do so using `data`, which is an array of every row of the dataset, and `queryResponse`, which contains metadata about the query, like it's field names and types.
 
 We can also use a helper method called `LookerCharts.Utils.htmlForCell` to give us the proper HTML representation of the data point in that cell, which automatically handles things like drill links, formatting, and data actions.
 
 ```js
-  update: function(data, element, config, queryResponse) {
+  updateAsync: function(data, element, config, queryResponse, done) {
 
     // Grab the first cell of the data
     var firstRow = data[0];
@@ -122,6 +128,8 @@ We can also use a helper method called `LookerCharts.Utils.htmlForCell` to give 
     // Insert the data into the page
     this._textElement.innerHTML = LookerCharts.Utils.htmlForCell(firstCell);
 
+    // Always call done to indicate a visualization has finished rendering
+    done()
   }
 ```
 
@@ -131,18 +139,18 @@ Let's press on though, and improve the user experience a bit...
 
 ### Handling Errors
 
-Our `update` code is grabbing the first row of data, but what happens if the query returns no results or doesn't contain any dimensions?
+Our `updateAsync` code is grabbing the first row of data, but what happens if the query returns no results or doesn't contain any dimensions?
 
 Well, currently you'll get an ugly JavaScript error in the browser console, but most users will be confused when the chart doesn't render.
 
 It's easy for charts to display custom error messages if they encounter problems while trying to render. Looker will add two functions to your visualization object: `addError` and `clearErrors` that can be used to display a nice error message to the user.
 
-Because they're added to the visualization object, they're available from the context of your `update` function via the `this` object.
+Because they're added to the visualization object, they're available from the context of your `updateAsync` function via the `this` object.
 
-We can just modify the beginning of our `update` method to detect an error condition and let the user know there's an issue, and bail out instead of trying to render:
+We can just modify the beginning of our `updateAsync` method to detect an error condition and let the user know there's an issue, and bail out instead of trying to render:
 
 ```js
-  update: function(data, element, config, queryResponse) {
+  updateAsync: function(data, element, config, queryResponse, done) {
 
     // Clear any errors from previous updates
     this.clearErrors();
@@ -170,8 +178,6 @@ We can use that to specify what kind of options the chart needs.
 
 ```js
 looker.plugins.visualizations.add({
-  id: "hello_world",
-  label: "Hello World",
   options: {
     font_size: {
       type: "string",
@@ -195,10 +201,10 @@ Specifying the `options:` property is all you need to add the option to the visu
 
 So how do we use it?
 
-Recall that in the `update` method there's a `config` parameter that gets passed in. This will contain the currently selected options.
+Recall that in the `updateAsync` method there's a `config` parameter that gets passed in. This will contain the currently selected options.
 
 ```js
-update: function(data, element, config, queryResponse) {
+updateAsync: function(data, element, config, queryResponse, done) {
 ```
 
 That `config` object looks something like this:
@@ -228,7 +234,7 @@ We should also update the `<style>` tag we add in the `create` method to define 
 }
 ```
 
-Because the `update` function gets called any time the config changes, and Looker automatically keeps track of saving the configuration for you, this is all you need to do to respond to any configuration settings you like.
+Because the `updateAsync` function gets called any time the config changes, and Looker automatically keeps track of saving the configuration for you, this is all you need to do to respond to any configuration settings you like.
 
 ### Doneskies
 

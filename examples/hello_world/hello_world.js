@@ -1,6 +1,4 @@
 looker.plugins.visualizations.add({
-  id: "hello_world",
-  label: "Hello World",
   options: {
     font_size: {
       type: "string",
@@ -45,7 +43,7 @@ looker.plugins.visualizations.add({
 
   },
   // Render in response to the data or settings changing
-  update: function(data, element, config, queryResponse) {
+  updateAsync: function(data, element, config, queryResponse, done) {
 
     // Clear any errors from previous updates
     this.clearErrors();
@@ -70,5 +68,7 @@ looker.plugins.visualizations.add({
       this._textElement.className = "hello-world-text-large";
     }
 
+    // We are done rendering! Let Looker know.
+    done()
   }
 });

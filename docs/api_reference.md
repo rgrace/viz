@@ -36,17 +36,6 @@ Custom visualizations are installed by defining a manifest via the Admin > Platf
 
 Custom Visualizations should be served as https content externally to looker. If you are migrating from the first version of the custom visualization API, you may have files in your `looker/plugins/visualizations` directory. This location is still accessible and a relative path to your visualization can be supplied, but it is recommended that you migrate your content to a different location. Since the /plugins directory is not in the Shared File System, clustered environments will not have access to your visualization files on all nodes.
 
-### Development
-
-To develop and test a visualization in Looker, you will need to host your visualization over https and create a manifest with a "Main" file pointing at your IP address and hosting port.
-
-An example work-flow might look like this:
-1. `pip install pyhttps` to install a simple https server.
-2. `pyhttps` in whichever folder you wish to develop.
-3. Navigate to the admin panel. In the left hand nav, select "Visualizations"
-4. Create a new manifest, your vis "Main" file should point at `https://localhost:4443/[vis_name.js]`
-5. Now you can create an explore utilizing that visualization.
-
 ## The Visualization Object
 
 ##### Required Properties
