@@ -1,4 +1,4 @@
-# API Reference
+# API 2.0 Reference
 
 The entry point into the Visualization API is a call to the `looker.plugins.visualizations.add` function. This function accepts a _visualization object_ which fully defines your custom visualization.
 
@@ -6,18 +6,17 @@ Here's a dead simple (and very boring) visualization:
 
 ```js
 looker.plugins.visualizations.add({
-	id: "my_first_chart",
-	label: "My First Chart",
 	create: function(element, config){
 		element.innerHTML = "<h1>Ready to render!</h1>";
 	},
-	update: function(data, element, config, queryResponse, details){
+	updateAsync: function(data, element, config, queryResponse, details, doneRendering){
 		var html = "";
 		for(var row of data) {
 			var cell = row[queryResponse.fields.dimensions[0].name];
 			html += LookerCharts.Utils.htmlForCell(cell);
 		}
 		element.innerHTML = html;
+		doneRendering()
 	}
 });
 ```
@@ -25,53 +24,32 @@ looker.plugins.visualizations.add({
 
 ### Environment
 
-Since the Visualization API is plain JavaScript, you can use any JavaScript libraries to visualize your data. There are currently a few libraries available in the global scope that you can use:
+Since the Visualization API is plain JavaScript, you can use any JavaScript libraries to visualize your data. 
 
-- D3 (as `d3`)
-- Underscore (as `_`)
-- jQuery (as `$`)
+Your JavaScript code will run in a sandboxed iframe, separate from your Looker instance. All the same, authors of custom visualizations are responsible for ensuring that the code they write is secure.
 
-Your JavaScript code will run in the same web browser context as your Looker instance. Authors of custom visualizations are responsible for ensuring that the code they write is secure.
-
-Just like all web development, supporting different web browsers (Chrome, Edge, Firefox) can occasionally be an issue. The Visualization API works on all browsers that Looker supports, but it's up to you to ensure browser support for your custom code.
+Just like all web development, supporting different web browsers (Chrome, Edge, Firefox) can occasionally be an issue. The Visualization API works on all browsers that Looker supports, but it's up to you to ensure browser support for your custom code. For example, uses of ES6 such as `let` or `()=>` will work in most browsers, but may cause failures in IE11 or rendering PDFs via PhantomJS.
 
 ### Installation
 
-Any files placed in the `looker/plugins/visualizations` directory on your Looker server will be picked up.
+Custom visualizations are installed by defining a manifest via the Admin > Platform > Visualizations form. A manifest consists of a unique string id, a human readable label, the URI of your visualization and links to any dependencies that you require (ex: d3, jQuery, underscore).
 
-You can clone this repo into the visualization directory. Looker will recursive find and serve all .js files. To include only one visualization, you can use a sparse checkout from git. For example, to include the Sankey visualization:
+Custom Visualizations should be served as https content externally to looker. If you are migrating from the first version of the custom visualization API, you may have files in your `looker/plugins/visualizations` directory. This location is still accessible and a relative path to your visualization can be supplied, but it is recommended that you migrate your content to a different location. Since the /plugins directory is not in the Shared File System, clustered environments will not have access to your visualization files on all nodes.
 
-```sh
-cd looker/plugins
-mkdir visualizations
-cd visualizations
-git init
-git remote add -f origin https://github.com/looker/visualization-api-examples.git
-git config core.sparseCheckout true
-echo "examples/common/d3.v4.js" >> .git/info/sparse-checkout
-echo "examples/common/utils.js" >> .git/info/sparse-checkout
-echo "examples/sankey/d3.sankey.js" >> .git/info/sparse-checkout
-echo "examples/sankey/sankey.js" >> .git/info/sparse-checkout
-git pull origin master
-```
+### Development
+
+To develop and test a visualization in Looker, you will need to host your visualization over https and create a manifest with a "Main" file pointing at your IP address and hosting port.
+
+An example work-flow might look like this:
+1. `pip install pyhttps` to install a simple https server.
+2. `pyhttps` in whichever folder you wish to develop.
+3. Navigate to the admin panel. In the left hand nav, select "Visualizations"
+4. Create a new manifest, your vis "Main" file should point at `https://localhost:4443/[vis_name.js]`
+5. Now you can create an explore utilizing that visualization.
 
 ## The Visualization Object
 
 ##### Required Properties
-
-- `id` _string_
-
-	A unique string to identify the visualization. This is used to associate objects in Looker with your visualization. It's also used as the `type` when specifying a dashboard element in LookML.
-
-	It may not contain the phrase `looker`.
-
-	**Example**: `id: "my_great_pie_chart"`
-
-- `label` _string_
-
-	A human-readable label shown to users when selecting a visualization.
-
-	**Example**: `label: "Super Great Chart (The Best)"`
 
 - `create` _function_
 
@@ -79,13 +57,13 @@ git pull origin master
 
 	[See details about the `create` function &rarr;](#the-create-function)
 
-- `update` / `updateAsync` _function_
+- `updateAsync` / `update` _function_
 
 	A function that is called every time the state of your visualization may need to change. It will always be called after `create`, and may be called many times, so should be as fast as possible.
 
 	This function can be called for many reasons, but usually it's when the query to visualize changes, a configuration option was changed, or the visualization was resized.
 
-	There is a synchronous and asynchronous version of this function – you'll only need to specify one. (It's an error to define both).
+	There is a synchronous and asynchronous version of this function – you'll only need to specify one. (It's an error to define both). The async method is more reliable for pdf rendering due to the nature of iframes.
 
 	[See details about these `update` functions &rarr;](#the-update-and-updateasync-functions)
 
@@ -93,11 +71,11 @@ git pull origin master
 
 - `options` _object_
 
-   An object detailing options that users can set on your visulization.
+   An object detailing options that users can set on your visualization.
 
 	[See details about exposing a configuration UI &rarr;](#presenting-configuration-ui)
 
-- `destroy` _function_
+- `destroy` _function_  *Not yet implemented in API V2*
 
 	A function that is called just before the visualization is removed from the page. This can be used to clean up any event listeners or other state. It may never be called, for example, if the user closes the window.
 
@@ -167,17 +145,9 @@ create: function(element, config){
 ### Example
 
 
-## The `update` and `updateAsync` functions
+## The `updateAsync` and `update` functions
 
-The `create` function will be pased five parameters:
-
-```js
-update: function(data, element, config, queryResponse, details){
-  // Your update code here.
-}
-```
-
-If your rendering code needs to perform an asynchronous action, such as loading a file or sending a web request, there's an asynchronous version of the function that can be passed in as `updateAsync`.
+The preferred method of updating your visualization is the `updateAsync` method. This method allows your visualization to perform an asynchronous action, such as loading a file or sending a web request.
 
 This version of the function has an additional parameter which is a callback to be called when rendering is complete:
 
@@ -191,7 +161,16 @@ updateAsync: function(data, element, config, queryResponse, details, done){
 }
 ```
 
-Properly letting Looker know when the visualization is done rendering lets Looker optimize rendering and ensures images of visualizations can be properly captured.
+Properly letting Looker know when the visualization is done rendering lets Looker optimize PDF rendering and ensures images of visualizations can be properly captured.
+
+Some older visualizations use the `update` function. This still works but is not the preferred method, since Looker cannot know when a visualization is fully rendered. It will be passed five parameters:
+
+```js
+update: function(data, element, config, queryResponse, details){
+  // Your update code here.
+}
+```
+
 
 ### Parameters
 
@@ -218,6 +197,11 @@ Properly letting Looker know when the visualization is done rendering lets Looke
 - `details` _object_
 
 	Details about the current rendering context. Contains information about why the chart is rendering and what has changed. Usually this information is only used in advanced cases.
+
+- `done` _function_
+
+	A callback to indicate that the visualization is fully rendered. This is especially important to call if your visualization needs to perform asynchronous calls or needs to be rendered as a PDF. 
+
 
 ## Rendering Data
 
@@ -411,24 +395,6 @@ options: {
 	A size class representing the width of the option in the UI. For example, if you wanted to show a "Minimum" and a "Maximum" option next to each other, you could set each of their `display_size`s to `half`.
 
 	**Allowed Values:** `normal` (default), `half`, `third`
-
-- `hidden` _function_
-
-	A function that will be called to determine whether the option should be displayed in the UI at a given time.
-
-	The function must return a boolean. If `true`, the option will be hidden, otherwise the option will be shown.
-
-	The function will be passed two parameters: `config` and `queryResponse`. The format of these parameters is the same as in `update`. `config` is the current values of all the other options, and `queryResponse` is the metadata of the current query being displayed in the visualization editor. `queryResponse` may be null in the case no query has been run.
-
-	**Example:**
-
-	```js
-	// If the user has selected "line" for "other_option", hide this option.
-	hidden: function(config, queryResponse) {
-		return config.other_option === "line";
-	}
-	```
-
 
 ## Events
 
