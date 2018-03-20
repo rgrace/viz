@@ -16,11 +16,6 @@ looker.plugins.visualizations.all().forEach((vis) =>{
   describe(`${vis.label} (as ${vis.id})`, () => {
     it("should load and not use unavailable things", () => { assert(true) });
 
-    it("should have an id", () => {
-      assert(typeof vis.id === "string");
-      assert(vis.id.length > 0);
-    })
-
     it("should implement create", () => {
       assert(typeof vis.create === "function");
     })
