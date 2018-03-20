@@ -90,7 +90,7 @@
 
         series.push(point)
       })
-      series.forEach(function(arr) { arr.sort(); });
+      series.forEach(function (arr) { arr.sort(function (a, b) { return a - b }); });
       // series format:
       // [[1.5,25,44.4,72.98,999],[0.02,21.99,39.99,79,903]]
 
