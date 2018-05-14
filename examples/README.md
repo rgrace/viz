@@ -18,57 +18,57 @@
 
 # Area Range
 
-[![](highcharts_example/area-range.gif)](/highcharts_example/highcharts_arearange.js)
+[![](highcharts_example/area-range.gif)](highcharts_example/highcharts_arearange.js)
 
 # Boxplot
 
-[![](highcharts_example/boxplot.gif)](/highcharts_example/highcharts_boxplot.js)
+[![](highcharts_example/boxplot.gif)](highcharts_example/highcharts_boxplot.js)
 
 # Bubble Scatterplot
 
-[![](highcharts_example/bubble.gif)](/highcharts_example/highcharts_bubble.js)
+[![](highcharts_example/bubble.gif)](highcharts_example/highcharts_bubble.js)
 
 # Calendar
 
-[![](calendar/calendar.png)](/calendar/calendar.js)
+[![](calendar/calendar.png)](calendar/calendar.js)
 
 # Chord
 
-[![](chord/chord.png)](/chord/chord.js)
+[![](chord/chord.png)](chord/chord.js)
 
 # Collapsible Tree
 
-[![](collapsible_tree/collapsible-tree.png)](/collapsible_tree/collapsible_tree.js)
+[![](collapsible_tree/collapsible-tree.png)](collapsible_tree/collapsible_tree.js)
 
 # Heatmap
 
-[![](highcharts_example/heatmap.gif)](/highcharts_example/highcharts_heatmap.js)
+[![](highcharts_example/heatmap.gif)](highcharts_example/highcharts_heatmap.js)
 
 # Histogram
 
-[![](highcharts_example/histogram.gif)](/highcharts_example/highcharts_histogram.js)
+[![](highcharts_example/histogram.gif)](highcharts_example/highcharts_histogram.js)
 
 # Matrix
 
-[![](matrix/matrix.png)](/matrix/matrix.js)
+[![](matrix/matrix.png)](matrix/matrix.js)
 
 # Sankey
 
-[![](sankey/sankey.png)](/sankey/sankey.js)
+[![](sankey/sankey.png)](sankey/sankey.js)
 
 # Spiderweb
 
-[![](highcharts_example/spiderweb.gif)](/highcharts_example/highcharts_spiderweb.js)
+[![](highcharts_example/spiderweb.gif)](highcharts_example/highcharts_spiderweb.js)
 
 # Sunburst
 
-[![](sunburst/sunburst.png)](/sunburst/sunburst.js)
+[![](sunburst/sunburst.png)](sunburst/sunburst.js)
 
 # Treemap
 
-[![](highcharts_example/treemap.gif)](/highcharts_example/highcharts_treemap.js)
-[![](treemap/treemap.png)](/treemap/treemap.js)
+[![](highcharts_example/treemap.gif)](highcharts_example/highcharts_treemap.js)
+[![](treemap/treemap.png)](treemap/treemap.js)
 
 # Waterfall
 
-[![](highcharts_example/waterfall.gif)](/highcharts_example/highcharts_waterfall.js)
+[![](highcharts_example/waterfall.gif)](highcharts_example/highcharts_waterfall.js)
