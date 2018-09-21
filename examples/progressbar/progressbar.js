@@ -1,3 +1,9 @@
+
+looker.plugins.visualizations.add({
+  id: "progressbar",
+  label: "Progress Bar",
+
+
 var bar = new ProgressBar.Line(container, {
   strokeWidth: 4,
   easing: 'easeInOut',
